@@ -1,0 +1,187 @@
+main .staff {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    
+    width: 95%;
+    margin: 34px auto;
+}
+
+main .staff .profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 15.9%;
+    height: 100%;
+
+    padding: 20px;
+
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    transition: .2s;
+}
+
+nav.open + main .staff .profile {
+    width: 18.9%;
+}
+
+main .staff .profile:hover {
+    box-shadow: 0 0 0px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+    scale: 1.01;
+}
+
+main .staff .profile .options {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+
+    width: 100%;
+    gap: 2px;
+    z-index: 10;
+}
+
+main .staff .profile .options .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+main .staff .profile .options .row span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+    background-color: #00000080;
+}
+
+main .staff .profile .options .row:hover {
+    cursor: pointer;
+}
+
+main .staff .profile .options-container {
+    position: absolute;
+
+    width: 120px;
+    height: 100px;
+
+    top: 0;
+    right: 0;
+
+    margin-top: 25px;
+    margin-right: 18px;
+    display: none;
+
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+
+    border-radius: 5px;
+    transition: all .2s ease-in-out;
+}
+
+main .staff .profile .options-container a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 100%;
+    height: 50%;
+
+    border: none;
+
+    text-decoration: none;
+    color: #000;
+}
+
+main .options-container a:hover {
+    background-color: #ECEEF3;
+}
+
+main .staff .profile .options-container:hover {
+    display: block;
+    transition: all .2s ease-in-out;
+}
+
+main .staff .profile .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 50%;
+}
+
+main .staff .profile .header img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+main .staff .profile .header h2 {
+    color: #327aff;
+    font-size: 1.3rem;
+
+    margin: 10px 0 5px 0;
+}
+
+main .staff .profile .header p {
+    font-size: 1rem;
+    color: #00000080;
+}
+
+main .staff .profile .bookings {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    width: 100%;
+    height: 50%;
+
+    padding: 20px 0 10px 0;
+}
+
+main .staff .profile .bookings p {
+    font-size: 1rem;
+    color: #00000080;
+}
+
+main .staff .profile .bookings span {
+    font-size: 1rem;
+    color: #000;
+}
+
+main .staff .profile a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 50px;
+
+    font-size: 1rem;
+    color: #000;
+    text-decoration: none;
+
+    border: 1px solid #ECEEF3;
+    border-radius: 5px;
+    padding: 5px 10px;
+
+    transition: .2s;
+}
+
+main .staff .profile a:hover {
+    background-color: #ECEEF3;
+}

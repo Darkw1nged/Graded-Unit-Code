@@ -1,0 +1,195 @@
+.adminNav {
+    position: fixed;
+    background-color: #f5f5f5;
+    width: 100px;
+    height: 100vh;
+    transition: all .4s;
+    z-index: 1;
+}
+
+.adminNav.open {
+    width: 300px;
+    transition: .4s;
+}
+
+.adminNav .header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+}
+
+.adminNav .header img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.adminNav.open .header img {
+    width: 50px;
+    height: 50px;
+    margin: 0 10px;
+}
+
+.adminNav .header h1 {
+    display: none;
+}
+
+.adminNav.open .header h1 {
+    display: block;
+    
+    color: #327aff;
+    font-size: 1.5rem;
+    user-select: none;
+}
+
+.adminNav h2 {
+    display: none;
+}
+
+.adminNav.open h2 {
+    display: block;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-bottom: -15px;
+
+    font-size: 1.05rem;
+    text-align: left;
+    color: #00000080;
+
+    user-select: none;
+}
+
+.adminNav hr {
+    display: block;
+    width: 85%;
+    height: 2px;
+
+    border-radius: 3px;
+    margin-left: 7.5%;
+    margin-top: 10px;
+    margin-bottom: 0px;
+
+    border: solid 1.5px rgba(0, 0, 0, 0.1);
+}
+
+.adminNav.open hr {
+    margin-bottom: 25px;
+}
+
+.adminNav ul {
+    list-style: none;
+    padding: 0;
+    margin: 2vh 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    z-index: 1;
+}
+
+.adminNav ul li {
+    width: 100%;
+    height: 100%;
+}
+
+.adminNav ul li a span {
+    display: none;
+}
+
+.adminNav ul li a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+
+    gap: 10px;
+    padding: 20px 20px 20px 30px;
+
+    text-decoration: none;
+    color: #000;
+    font-family: sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+
+    transition: .1s;
+}
+
+.adminNav.open ul li a span {
+    display: flex;
+}
+
+.adminNav ul li a:hover {
+    background-color: #327aff;
+    color: #fff;
+}
+
+.adminNav.open ul li a:hover {
+    background-color: #eeeeee;
+    color: #000;
+    border-left: 7px solid #327aff;
+}
+
+.adminNav ul li a svg {
+    width: 35px;
+    height: 35px;
+}
+
+.adminNav.open ul li a svg {
+    width: 30px;
+    height: 30px;
+}
+
+.adminNav .arrow {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+
+    background-color: #f5f5f5;
+    border-radius: 50%;
+
+    margin: 0 76px;
+
+    clip-path: polygon(40% 0, 100% 0, 100% 100%, 40% 100%);
+    cursor: pointer;
+    z-index: 2;
+    transition: .4s;
+}
+
+.adminNav.open .arrow {
+    margin: 0 276px;
+}
+
+.adminNav .arrow span {
+    display: block;
+    width: 30px;
+    height: 8px;
+    background-color: #327aff;
+    border-radius: 5px;
+    margin: 4px 5px;
+}
+
+.adminNav.open span {
+    margin: 4px 8px;
+}
+
+.adminNav .arrow span:nth-child(1) {
+    transform: rotate(45deg);
+}
+
+.adminNav .arrow span:nth-child(2) {
+    transform: rotate(-45deg);
+}
+
+.adminNav.open .arrow span:nth-child(1) {
+    transform: rotate(-45deg);
+}
+
+.adminNav.open .arrow span:nth-child(2) {
+    transform: rotate(45deg);
+}

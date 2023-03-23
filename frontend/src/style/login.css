@@ -1,0 +1,153 @@
+.container .form input {
+    width: 19vw;
+    height: 60px;
+    margin-bottom: 1rem;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    font-size: 1.2rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container .form input:focus {
+    border: 1px solid #327aff;
+}
+
+.container .form input[type="submit"] {
+    background: #327aff;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.container .form input[type="submit"]:hover {
+    background: #eeeeee;
+    color: #327aff;
+    border: 1px solid #327aff;
+}
+
+.container .form .forgot-password {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .forgot-password a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .forgot-password a:hover {
+    color: #3c32ff;
+}
+
+.container .form .register-account {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .register-account a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .register-account a:hover {
+    color: #3c32ff;
+}
+/* 
+@media screen and (max-width: 1440px) {
+    .container {
+        width: 40vw;
+    }
+
+    .container .form input {
+        width: 25vw;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    body {
+        background: #eeeeee;
+    }
+
+    .container {
+        width: 100vw;
+    }
+
+    .container .form {
+        width: 100%;
+    }
+
+    .container .form .invalid-attempt {
+        width: 90%;
+        margin-bottom: 100px;
+    }
+
+    .container .form .invalid-attempt ul li {
+        font-size: 1rem;
+    }
+
+    .container .form h1 {
+        width: 90%;
+    }
+
+    .container .form hr {
+        width: 90%;
+    }
+
+    .container .form .external-logins {
+        width: 100%;
+    }
+
+    .container .form .external-logins .google {
+        width: 90%;
+    }
+
+    .container .form .external-logins .github {
+        width: 90%;
+    }
+
+    .container .form .external-logins .discord {
+        width: 90%;
+    }
+
+    .container .form .break {
+        width: 90%;
+    }
+
+    .container .form input {
+        width: 90vw;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .container .form .invalid-attempt ul li {
+        font-size: 1rem;
+    }
+
+    .container .form input[type="submit"] {
+        font-size: 1rem;
+    }
+    
+    .container .form .forgot-password {
+        font-size: 1rem;
+    }
+
+    .container .form .register-account {
+        font-size: 1rem;
+    }
+
+} */
