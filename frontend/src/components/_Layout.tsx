@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { AppContext } from "./context";
 
 import '../style/navigation.css'
+import '../style/form-main.css'
 
 type LayoutProps = {
     isAdmin: boolean;
@@ -20,7 +21,8 @@ const Layout = ({ isAdmin }: LayoutProps) => {
         location.pathname === "/register" ||
         location.pathname === "/forgot-password" ||
         location.pathname === "/reset-password" ||
-        location.pathname === "/book-space"
+        location.pathname === "/book-space" ||
+        location.pathname === "/"
     ) return <Outlet />;
 
     return (
@@ -28,7 +30,7 @@ const Layout = ({ isAdmin }: LayoutProps) => {
         { isAdmin ? (
             <nav className="adminNav">
                 <div className="header">
-                    <img src="../images/Profile_avatar_placeholder.png" alt="profile" />
+                    <img src="/Profile_avatar_placeholder.png" alt="profile" />
                     <h1>John Doe</h1>
                 </div>
                 <div onClick={toggleNav} className="arrow">
@@ -84,7 +86,7 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                         </svg>
                         <span>Home</span>
                     </Link></li>
-                    <li><Link to="/" onClick={toggleAdmin}>
+                    <li><Link to="Logout" onClick={toggleAdmin}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8m4-9-4-4m4 4-4 4m4-4H9"/>
                         </svg>
@@ -106,12 +108,6 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                     </li>
                     <li>
                         <Link to="/login">Login</Link>
-                    </li>
-                    <li>
-                        <Link to="/forgot-password">Forgot Password</Link>
-                    </li>
-                    <li>
-                        <Link to="/reset-password">Reset Password</Link>
                     </li>
                     <li>
                         <Link to="/book-space">Book Space</Link>

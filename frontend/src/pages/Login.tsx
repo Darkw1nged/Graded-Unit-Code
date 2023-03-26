@@ -1,8 +1,54 @@
-import '../style/login.css';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const Page = () => {
+    // if (document.cookie.includes("userToken")) {
+    //     window.location.href = "/";
+    // }
+
+    const [formValues, setFormValues] = useState({
+        email: '',
+        password: '',
+        rememberMe: false
+    });
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setFormValues({
+            ...formValues,
+            [name]: value,
+            [name]: event.target.type === 'checkbox' ? event.target.checked : value
+        });
+    }
+
+    const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch('http://localhost:5000/account/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formValues),
+        })
+        .then(response => response.json())
+        .then(response => {
+            document.cookie = `userToken=${response.data.token}; expires=${new Date(Date.now() + response.data.expiresIn * 1000)}; path=/`;
+            window.location.href = "/";
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+
     return (
         <div className="form-body">
+            <div className="navigation">
+                <Link to="/">Home</Link>
+                <Link to="/book-space">Book</Link>
+                <Link to="/contact">Contact</Link>
+            </div>
+
             <div className="container">
                 <div className="form">
                     <h1>Login</h1>
@@ -33,13 +79,17 @@ const Page = () => {
                         <span>Or</span>
                     </div>
 
-                    <form action="login.php" method="POST">
-                        <input type="text" name="email" placeholder="Email" required />
-                        <input type="password" name="password" placeholder="Password" required />
+                    <form onSubmit={handleFormSubmit}>
+                        <input type="text" name="email" placeholder="Email" value={formValues.email} onChange={handleInputChange} required />
+                        <input type="password" name="password" placeholder="Password" value={formValues.password} onChange={handleInputChange} required />
+                        <div className="remember-details">
+                            <input type="checkbox" name="rememberMe" checked={formValues.rememberMe} onChange={handleInputChange} />
+                            <label htmlFor="rememberMe">Remember me</label>
+                        </div>
                         <input type="submit" value="Login" />
                     </form>
-                    <p className="forgot-password">Forgot your password? <a href="">Click here</a></p>
-                    <p className="register-account">Don't have an account? <a href="register.php">Sign up</a></p>
+                    <p className="forgot-password">Forgot your password? <Link to="/forgot-password">Click here</Link></p>
+                    <p className="register-account">Don't have an account? <Link to="/register">Sign up</Link></p>
                 </div>
             </div>
         </div>

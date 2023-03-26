@@ -1,9 +1,57 @@
-import '../style/register.css';
-import '../style/form-main.css'
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const Page = () => {
+    if (document.cookie.includes("userToken")) {
+        window.location.href = "/";
+    }
+
+    const [formValues, setFormValues] = useState({
+        forename: '',
+        surname: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setFormValues({
+            ...formValues,
+            [name]: value
+        });
+    }
+
+    const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch('http://localhost:5000/account/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formValues),
+        })
+        .then(response => response.json())
+        .then(data => {
+            window.location.href = "/login";
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+            if (error.response && error.response.status === 409) {
+                console.log("account with this email already exists");
+            }
+        });
+    }
+
     return (
         <div className="form-body">
+            <div className="navigation">
+                <Link to="/">Home</Link>
+                <Link to="/book-space">Book</Link>
+                <Link to="/contact">Contact</Link>
+            </div>
+            
             <div className="container">
                 <div className="form">
                     <h1>Register</h1>
@@ -34,13 +82,17 @@ const Page = () => {
                         <span>Or</span>
                     </div>
 
-                    <form action="login.php" method="POST">
-                        <input type="email" name="email" placeholder="Email" required />
-                        <input type="password" name="password" placeholder="Password" required />
-                        <input type="password" name="password2" placeholder="Confirm Password" required />
+                    <form onSubmit={handleFormSubmit} name="register-form">
+                        <div className="name">
+                            <input type="text" name="forename" placeholder="Forename" value={formValues.forename} onChange={handleInputChange} required />
+                            <input type="text" name="surname" placeholder="Surname" value={formValues.surname} onChange={handleInputChange} required />
+                        </div>
+                        <input type="email" name="email" placeholder="Email" value={formValues.email} onChange={handleInputChange} required />
+                        <input type="password" name="password" placeholder="Password" value={formValues.password} onChange={handleInputChange} required />
+                        <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formValues.confirmPassword} onChange={handleInputChange} required />
                         <input type="submit" value="Next" />
                     </form>
-                    <p className="login-account">Already have an account? <a href="login.php">Login</a></p>
+                    <p className="login-account">Already have an account? <Link to="/login">Login</Link></p>
                 </div>
             </div>
         </div>

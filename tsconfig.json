@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "lib": ["es6"],
+        "outDir": "./dist",
+        "strict": true,
+        "esModuleInterop": true
+    },
+    "include": [
+        "./backend/**/*.ts",
+        "./frontend/**/*.ts",
+        "./backend/database.ts",
+        "./backend/server.ts"
+    ],
+    "exclude": [
+        "./node_modules",
+        "./backend/node_modules"
+    ]
+}

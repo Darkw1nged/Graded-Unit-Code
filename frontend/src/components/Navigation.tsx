@@ -11,6 +11,7 @@ import Contact from "../pages/Contact";
 import NoPageFound from "../pages/NoPageFound";
 import Register from "../pages/Register";
 import Login from "../pages/Login";
+import Logout from "../pages/Logout";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import BookSpace from "../pages/BookSpace";
@@ -33,6 +34,7 @@ function Navigation() {
             <Route path="contact" element={<Contact />} />
             <Route path="register" element={<Register />} />
             <Route path="login" element={<Login />} />
+            <Route path="logout" element={<Logout />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
             <Route path="book-space" element={<BookSpace />} />

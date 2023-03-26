@@ -17,6 +17,33 @@
     right: 0;
 }
 
+.navigation {
+    position: absolute;
+    width: 1200px;
+
+    display: flex;
+    gap: 10px;
+
+    padding: 10px 20px;
+}
+
+.navigation a {
+    text-decoration: none;
+    color: white;
+    font-size: 25px;
+    transition: .2s;
+
+    padding: 2px 10px;
+
+    border-radius: 5px;
+    border: 2px solid transparent;
+}
+
+.navigation a:hover {
+    border: 2px solid white;
+}
+
+
 .container .form {
     display: flex;
     flex-direction: column;
@@ -116,4 +143,144 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%) translateY(-50%);
+}
+
+.container .form input {
+    width: 25vw;
+    height: 60px;
+    margin-bottom: 1rem;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    font-size: 1.2rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container .form .name {
+    display: flex;
+    justify-content: space-between;
+}
+
+.container .form .name input {
+    width: 12vw;
+}
+
+.container .form input:focus {
+    border: 1px solid #327aff;
+}
+
+.container .form input[type="submit"] {
+    background: #327aff;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.container .form input[type="submit"]:hover {
+    background: #eeeeee;
+    color: #327aff;
+    border: 1px solid #327aff;
+}
+
+.container .form .remember-details {
+    display: flex;
+}
+
+.container .form .remember-details input {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    transition: .3s;
+}
+
+.container .form .remember-details label {
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .forgot-password {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .forgot-password a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .forgot-password a:hover {
+    color: #3c32ff;
+}
+
+.container .form .register-account {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .register-account a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .register-account a:hover {
+    color: #3c32ff;
+}
+
+.container .form .login-account {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .login-account a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .login-account a:hover {
+    color: #3c32ff;
+}
+
+.container .form .has-account {
+    margin-top: 1rem;
+    text-align: center;
+    width: 65%;
+    font-size: 1.2rem;
+    color: #000000;
+    transition: .3s;
+}
+
+.container .form .has-account a {
+    color: #327aff;
+    text-decoration: none;
+}
+
+.container .form .has-account a:hover {
+    color: #3c32ff;
+}
+
+.container .form .information {
+    width: 65%;
+    text-align: left;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    margin-bottom: 40px;
 }
