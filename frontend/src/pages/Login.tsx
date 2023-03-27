@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 const Page = () => {
-    // if (document.cookie.includes("userToken")) {
-    //     window.location.href = "/";
-    // }
+    if (document.cookie.includes("userToken")) {
+        window.location.href = "/";
+    }
 
     const [formValues, setFormValues] = useState({
         email: '',

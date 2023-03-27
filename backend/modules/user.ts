@@ -150,6 +150,21 @@ export default class User {
     }
 
     /**
+     * Updates a user's password.
+     * @param email The user's email address.
+     * @param password The user's new password.
+     * @throws An error if the password could not be updated.
+     */
+    static async updatePassword(email: string, password: string): Promise<void> {
+        const connection = await pool.getConnection();
+        try {
+            await connection.query('UPDATE users SET password = ? WHERE email = ?', [password, email]);
+        } finally {
+            connection.release();
+        }
+    }
+
+    /**
      * Generates a new token for a user.
      * @param email The user's email address.
      * @returns The generated token.
@@ -165,6 +180,45 @@ export default class User {
     }
 
     /**
+     * Validates a token.
+     * @param token The token to validate.
+     * @returns True if the token is valid, false otherwise.
+     * @throws An error if the token could not be validated.
+     */
+    static async validateToken(token: string): Promise<boolean> {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=' + token);
+            if (rows.length === 0) {
+                return false; // invalid token
+            }
+            return true;
+        } finally {
+            connection.release();
+        }
+    }
+
+    /**
+     * Gets the user from a token.
+     * @param token The token to get the user from.
+     * @returns The user.
+     * @throws An error if the user could not be found.
+     */
+    static async getUserFromToken(token: string): Promise<string | null> {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=' + token);
+            if (rows.length === 0) {
+                return null; // No user found
+            }
+
+            return rows[0].email;
+        } finally {
+            connection.release();
+        }
+    }
+
+    /**
      * Create a new user session.
      * @param email The user's email address.
      * @param token The user's token.
@@ -175,6 +229,22 @@ export default class User {
         const connection = await pool.getConnection();
         try {
             await connection.query('INSERT INTO sessions (id, email, createdAt, expiresAt) VALUES (?, ?, ?, ?)', [token, email, new Date(), new Date(Date.now() + expiresIn)]);
+        } finally {
+            connection.release();
+        }
+    }
+
+    /**
+     * Deletes a user session.
+     * @param email The user's email.
+     * @throws An error if the session could not be deleted.
+     * @returns True if the session was deleted, false otherwise.
+     */
+    static async deleteSession(token: string): Promise<boolean> {
+        const connection = await pool.getConnection();
+        try {
+            const [rows] = await connection.query('DELETE FROM sessions WHERE id="' + token + '"');
+            return rows.affectedRows === 1;
         } finally {
             connection.release();
         }

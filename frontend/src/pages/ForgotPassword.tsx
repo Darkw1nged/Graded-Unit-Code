@@ -1,8 +1,39 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const Page = () => {
     if (document.cookie.includes("userToken")) {
         window.location.href = "/";
+    }
+
+    const [formValues, setFormValues] = useState({
+        email: '',
+    });
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setFormValues({
+            ...formValues,
+            [name]: value,
+        });
+    }
+
+    const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch('http://localhost:5000/account/forgot-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formValues),
+        })
+        .then(response => response.json())
+        .then(response => {
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
     }
 
     return (
@@ -19,8 +50,8 @@ const Page = () => {
                     <hr />
                     <p className="information">Enter your email address to receive a link to reset your password.</p>
             
-                    <form action="login.php" method="POST">
-                        <input type="email" name="email" placeholder="Email" required />
+                    <form onSubmit={handleFormSubmit}>
+                        <input type="email" name="email" placeholder="Email" value={formValues.email} onChange={handleInputChange} required />
                         <input type="submit" value="Send Link" />
                     </form>
                     <p className="register-account">Don't have an account? <Link to="/register">Sign up</Link></p>

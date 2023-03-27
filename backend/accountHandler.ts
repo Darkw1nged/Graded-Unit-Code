@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import user from './database/modules/user-details';
+import user from './modules/user';
 import { hashSync, genSaltSync } from 'bcrypt';
 import { sendEmail } from './email-service';
 
@@ -15,7 +15,14 @@ class AccountHandler {
      */
     static async create(req: Request, res: Response) {
         // get data from request
-        const { forename, surname, email, password } = req.body;
+        const { forename, surname, email, password, confirmedPassword } = req.body;
+
+        // check if passwords match
+        if (password !== confirmedPassword) {
+            res.status(409).json({ message: 'Passwords do not match' });
+            return;
+        }
+
         // hash password
         const salt = genSaltSync(10);
         const hashedPassword = hashSync(password, salt);
@@ -99,6 +106,109 @@ class AccountHandler {
                 token,
                 expiresIn
             }
+        });
+    }
+
+    /**
+     * Logs a user out.
+     * @param req The request.
+     * @param res The response.
+     * @returns The user's token.
+     */
+    static async logout(req: Request, res: Response) {
+        // get data from request
+        const { userToken } = req.body;
+
+        // delete session
+        await user.deleteSession(userToken);
+        
+        res.status(200).json({
+            message: 'Logout successful'
+        });
+    }
+
+    /**
+     * Sends a password reset email.
+     * @param req The request.
+     * @param res The response.
+     * @returns The user's token.
+     * @throws 404 if the email does not exist.
+     * @throws 500 if the email could not be sent.
+     */
+    static async forgotPassword(req: Request, res: Response) {
+        // get data from request
+        const { email } = req.body;
+
+        // check if email already exists
+        const existingUser = await user.findByEmail(email);
+        if (!existingUser) {
+            res.status(404).json({ message: 'Email does not exist' });
+            return;
+        }
+
+        // generate token
+        const token = await user.generateToken(email, 60 * 60);
+
+        // send email
+        try {
+            await sendEmail(email, 'Password reset', `Click here to reset your password: http://localhost:3000/reset-password?token=${token}`);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Something went wrong' });
+            return;
+        }
+
+        res.status(200).json({ 
+            message: 'Email sent successfully',
+            data: {
+                token
+            }
+        });
+    }
+
+    /**
+     * Resets a user's password.
+     * @param req The request.
+     * @param res The response.
+     * @throws 404 if the email does not exist.
+     * @throws 401 if the token is invalid.
+     */
+    static async resetPassword(req: Request, res: Response) {
+        // get data from request
+        const { password, confirmedPassword, token } = req.body;
+
+        // check if passwords match
+        if (password !== confirmedPassword) {
+            res.status(409).json({ message: 'Passwords do not match' });
+            return;
+        }
+
+        // check if token is valid
+        const isTokenValid = await user.validateToken(token);
+        if (!isTokenValid) {
+            res.status(401).json({ message: 'Token is invalid' });
+            return;
+        }
+
+        // get the email from the token
+        const email = await user.getUserFromToken(token);
+        if (!email) {
+            res.status(401).json({ message: 'Token is invalid' });
+            return;
+        }
+
+        // hash password
+        const salt = genSaltSync(10);
+        const hashedPassword = hashSync(password, salt);
+
+        // update password
+        await user.updatePassword(email, hashedPassword);
+
+        // delete session
+        await user.deleteSession(email);
+
+        res.status(200).json({ 
+            message: 'Password reset successfully'
         });
     }
 

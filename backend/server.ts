@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import userRouter from './users';
 import AccountHandler from './AccountHandler';
 
 /**
@@ -18,7 +17,6 @@ class Server {
         this.app = express();
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-        this.app.use('/users', userRouter);
         this.app.use(cors());
     }
 
@@ -56,6 +54,9 @@ class Server {
         
         this.app.post('/account/create', AccountHandler.create);
         this.app.post('/account/login', AccountHandler.login);
+        this.app.post('/account/logout', AccountHandler.logout);
+        this.app.post('/account/forgot-password', AccountHandler.forgotPassword);
+        this.app.post('/account/reset-password', AccountHandler.resetPassword);
     }
 
     private app: express.Application;
