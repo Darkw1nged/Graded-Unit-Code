@@ -1,4 +1,5 @@
-import * as mysql from 'mysql2';;
+import * as mysql from 'mysql2';
+import Role from './modules/role';
 
 /**
  * Create a pool of MySQL connections
@@ -13,10 +14,6 @@ const pool = mysql.createPool({
 });
 
 /**
- * Create tables if they do not exist
- */
-
-/**
  * Create the users table
  * @param {Error} err - Any error encountered while creating the table
  * @param {*} results - Results from creating the table
@@ -24,19 +21,41 @@ const pool = mysql.createPool({
  */
 pool.query(
   `CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    roleID INT NOT NULL,
     forename VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
     address VARCHAR(255),
     postcode VARCHAR(255),
     telephone VARCHAR(255),
-    mobile VARCHAR(255)
+    mobile VARCHAR(255),
+    FOREIGN KEY (roleID) REFERENCES roles(roleID)
   )`,
   (err, results, fields) => {
     if (err) {
       console.log('Error creating users table', err);
+    }
+  },
+);
+
+/**
+ * Create the sessions table
+ * @param {Error} err - Any error encountered while creating the table
+ * @param {*} results - Results from creating the table
+ * @param {*} fields - Fields used to create the table
+ */
+pool.query(
+  `CREATE TABLE IF NOT EXISTS sessions (
+    id VARCHAR(255) PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expiresAt DATETIME NOT NULL,
+    FOREIGN KEY (email) REFERENCES users(email)
+  )`,
+  (err, results, fields) => {
+    if (err) {
+      console.log('Error creating sessions table', err);
     }
   },
 );
@@ -49,7 +68,7 @@ pool.query(
  */
 pool.query(
   `CREATE TABLE IF NOT EXISTS roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    roleID INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
   )`,
   (err, results, fields) => {
@@ -148,26 +167,6 @@ pool.query(
   },
 );
 
-/**
- * Create the sessions table
- * @param {Error} err - Any error encountered while creating the table
- * @param {*} results - Results from creating the table
- * @param {*} fields - Fields used to create the table
- */
-pool.query(
-  `CREATE TABLE IF NOT EXISTS sessions (
-    id VARCHAR(255) PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
-  )`,
-  (err, results, fields) => {
-    if (err) {
-      console.log('Error creating sessions table', err);
-    }
-  },
-);
-
 
 /**
  * A promise representing a pool of connections to a MySQL database.
@@ -182,3 +181,12 @@ pool.query(
  * @exports default
  */
 export default pool.promise();
+
+/**
+ * Create some roles
+ */
+// Role.create(1, 'Customer');
+// Role.create(2, 'Invoices_Clerk');
+// Role.create(3, 'Bookings_Clerk');
+// Role.create(4, 'Manager');
+// Role.create(5, 'Admin');

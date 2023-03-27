@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import user from './database/modules/user-details';
 import { hashSync, genSaltSync } from 'bcrypt';
-import MailgunEmailService from './email-service';
+import { sendEmail } from './email-service';
 
 class AccountHandler {
 
@@ -19,6 +19,8 @@ class AccountHandler {
         // hash password
         const salt = genSaltSync(10);
         const hashedPassword = hashSync(password, salt);
+        // role is always 1 (customer) for now
+        const role = 1;
 
         // check if email already exists
         const existingUser = await user.findByEmail(email);
@@ -29,7 +31,7 @@ class AccountHandler {
 
         // call create method
         try {
-            await user.create(forename, surname, email, hashedPassword);
+            await user.create(forename, surname, email, hashedPassword, role);
 
             res.status(201).json({ 
                 message: 'Account created successfully',
@@ -37,11 +39,13 @@ class AccountHandler {
                     forename,
                     surname,
                     email,
-                    password: hashedPassword
+                    password: hashedPassword,
+                    role
                 }
             });
         } catch (error) {
-            res.status(500).send();
+            console.error(error);
+            res.status(500).json({ message: 'Something went wrong' });
         }
     }
 
@@ -76,12 +80,18 @@ class AccountHandler {
         let token;
         let expiresIn;
         if (rememberMe) {
-            token = await user.generateToken(existingUser.email, 30 * 24 * 60 * 60);
+            token = await user.generateToken(email, 30 * 24 * 60 * 60);
             expiresIn = 30 * 24 * 60 * 60;
         } else {
-            token = await user.generateToken(existingUser.email, 60 * 60);
+            token = await user.generateToken(email, 60 * 60);
             expiresIn = 60 * 60;
         }
+
+        // create session
+        await user.createSession(email, token, expiresIn);
+
+        // send email
+        await sendEmail(email, 'Login successful', 'You have successfully logged in to your account.');
 
         res.status(200).json({ 
             message: 'Login successful',

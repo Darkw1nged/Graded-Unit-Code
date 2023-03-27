@@ -1,6 +1,15 @@
 import '../../style/admin-dash.css'
 
 const Dashboard = () => {
+
+    // check if user is logged in and can access this page, sessionID is stored in cookies userToken
+    const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken='))?.split('=')[1]
+    console.log(userToken)
+    
+    if (!userToken) {
+        window.location.href = '/login'
+    }
+
     return (
         <main>
             <div className="stats">
