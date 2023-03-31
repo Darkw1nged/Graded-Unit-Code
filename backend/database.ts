@@ -1,9 +1,10 @@
 import * as mysql from 'mysql2';
-import Role from './modules/role';
 
 /**
  * Create a pool of MySQL connections
  * @type {Pool}
+ * @description This is the pool of MySQL connections that will be used to connect to the database.
+ * @see {@link https://www.npmjs.com/package/mysql2#using-connection-pools}
  */
 const pool = mysql.createPool({
   host: 'localhost',
@@ -18,6 +19,7 @@ const pool = mysql.createPool({
  * @param {Error} err - Any error encountered while creating the table
  * @param {*} results - Results from creating the table
  * @param {*} fields - Fields used to create the table
+ * @description This is the table that will store all of the users of the system.
  */
 pool.query(
   `CREATE TABLE IF NOT EXISTS users (
@@ -38,6 +40,54 @@ pool.query(
     }
   },
 );
+
+/** 
+ * Create the corporate table
+ * @param {Error} err - Any error encountered while creating the table
+ * @param {*} results - Results from creating the table
+ * @param {*} fields - Fields used to create the table
+ * @description This is the table that will store all of the corporate users of the system.
+ */
+pool.query(
+  `CREATE TABLE IF NOT EXISTS corporate (
+    email VARCHAR(255) NOT NULL PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    telephone VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL
+  )`,
+  (err, results, fields) => {
+    if (err) {
+      console.log('Error creating corporate table', err);
+    }
+  },
+);
+
+/**
+ * Create the addresses table
+ * @param {Error} err - Any error encountered while creating the table
+ * @param {*} results - Results from creating the table
+ * @param {*} fields - Fields used to create the table
+ * @description This is the table that will store all of the addresses of the system.
+ */
+pool.query(
+  `CREATE TABLE IF NOT EXISTS addresses (
+    addressID INT PRIMARY KEY AUTO_INCREMENT,
+    addressLineOne VARCHAR(255) NOT NULL,
+    addressLineTwo VARCHAR(255),
+    postcode VARCHAR(255) NOT NULL,
+    city VARCHAR(255) NOT NULL,
+    country VARCHAR(255) NOT NULL
+  )`,
+  (err, results, fields) => {
+    if (err) {
+      console.log('Error creating addresses table', err);
+    }
+  },
+);
+
+// -- Above is complete
+    
 
 /**
  * Create the sessions table

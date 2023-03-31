@@ -1,55 +1,86 @@
 import pool from '../database';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import Address from './address';
 
 /**
  * Represents a user of the system.
+ * @class
+ * @description This is the class that will be used to represent a user of the system.
+ * @memberof backend
+ * @property {string} forename The user's forename.
+ * @property {string} lastname The user's lastname.
+ * @property {string} email The user's email address.
+ * @property {string} password The user's password.
+ * @property {number} role The user's role (Role ID).
+ * @property {Address} address The user's address.
+ * @property {string} telephone The user's telephone number.
+ * @property {string} mobile The user's mobile number.
  */
 export default class User {
     /**
      * The user's forename.
+     * @type {string}
+     * @memberof User
+     * @description This is the user's first name.
      */
     forename: string;
 
     /**
      * The user's lastname.
+     * @type {string}
+     * @memberof User
+     * @description This is the user's last name.
      */
     lastname: string;
 
     /**
-     * The user's address.
-     */
-    address?: string;
-
-    /**
-     * The user's postcode.
-     */
-    postcode?: string;
-
-    /**
-     * The user's telephone number.
-     */
-    telephone?: string;
-
-    /**
-     * The user's mobile number.
-     */
-    mobile?: string;
-
-    /**
      * The user's email address.
+     * @type {string}
+     * @memberof User
+     * @description This is the email address that the user will use to log in to the system.
      */
     email: string;
 
     /**
      * The user's password.
+     * @type {string}
+     * @memberof User
+     * @description This is the password that the user will use to log in to the system.
      */
     password: string;
-    
+
     /**
-     * The user's role.
+     * The user's role (Role ID).
+     * @type {number}
+     * @memberof User
+     * @description This is the role that the user has in the system.
      */
     role: number;
+
+    /**
+     * The user's address.
+     * @type {Address}
+     * @memberof User
+     * @description This is where the user is located.
+     */
+    address?: Address;
+
+    /**
+     * The user's telephone number.
+     * @type {string}
+     * @memberof User
+     * @description This is the telephone number that the ParkEasy team can use to contact the user.
+     */
+    telephone?: string;
+
+    /**
+     * The user's mobile number.
+     * @type {string}
+     * @memberof User
+     * @description This is the mobile number that the ParkEasy team can use to contact the user.
+     */
+    mobile?: string;
 
     /**
      * The constructor for the user class.
@@ -62,15 +93,16 @@ export default class User {
      * @param email The user's email address.
      * @param password The user's password.
      * @param role The user's role.
+     * @memberof User
+     * @description This is the constructor for the user class.
      */
-    constructor(forename: string, lastname: string, email: string, password: string, role: number, address?: string, postcode?: string, telephone?: string, mobile?: string) {
+    constructor(forename: string, lastname: string, email: string, password: string, role: number, address?: Address, telephone?: string, mobile?: string) {
         this.forename = forename;
         this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.role = role;
         this.address = address;
-        this.postcode = postcode;
         this.telephone = telephone;
         this.mobile = mobile;
     }
@@ -79,12 +111,15 @@ export default class User {
      * Creates a new user in the database.
      * @param forename The user's forename.
      * @param lastname The user's lastname.
-     * @param address The user's address.
-     * @param postcode The user's postcode.
-     * @param telephone The user's telephone number.
-     * @param mobile The user's mobile number.
      * @param email The user's email address.
      * @param password The user's password.
+     * @param roleID The user's role.
+     * @param address The user's address.
+     * @param telephone The user's telephone number.
+     * @param mobile The user's mobile number.
+     * @returns {Promise<void>}
+     * @memberof User
+     * @description This function creates a new user in the database.
      */
     static async create(
         forename: string,
@@ -92,24 +127,44 @@ export default class User {
         email: string,
         password: string,
         roleID: number,
-        address?: string,
-        postcode?: string,
+        address?: Address,
         telephone?: string,
         mobile?: string
     ): Promise<void> {
+        // Get a connection from the pool
         const connection = await pool.getConnection();
 
-        console.log(forename, lastname, email, password, roleID, address, postcode, telephone, mobile)
-
+        // Try and query the database
         try {
+
+            // We need to check if an address was provided.
+            // Before we can we need to create a variable to store the address ID.
+            let addressID = null;
+
+            // If an address was provided, we need to check if it already exists in the database.
+            if (address) {
+                addressID = await connection.query(
+                    'SELECT id FROM addresses WHERE addressLineOne = ? AND `postcode` = ?',
+                    [address.addressLineOne, address.postcode]
+                );
+    
+                // If an address was not found, we need to create a new one.
+                if (addressID.length === 0) {
+                    // TODO - create a new address.
+                }
+            }
+
+            // Now we can create the user.
             await connection.query(
-                'INSERT INTO users (email, password, roleID, forename, lastname, address, postcode, telephone, mobile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [email, password, roleID, forename, lastname, address, postcode, telephone, mobile]
+                'INSERT INTO users (email, password, roleID, forename, lastname, telephone, mobile, addressID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [email, password, roleID, forename, lastname, telephone, mobile, addressID]
             );
         } finally {
             connection.release();
         }
     }
+
+    // Above is fixed code
 
     /**
      * Finds a user by their email address.
