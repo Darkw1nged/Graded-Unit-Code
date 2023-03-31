@@ -11,11 +11,13 @@ import Contact from "../pages/Contact";
 
 import NoPageFound from "../pages/NoPageFound";
 
-import Register from "../pages/Register";
-import Login from "../pages/Login";
-import Logout from "../pages/Logout";
-import ForgotPassword from "../pages/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword";
+import Register from "../pages/account/Register";
+import RegisterPersonal from "../pages/account/register/personal";
+import RegisterCorporate from "../pages/account/register/corporate";
+import Login from "../pages/account/Login";
+import Logout from "../pages/account/Logout";
+import ForgotPassword from "../pages/account/ForgotPassword";
+import ResetPassword from "../pages/account/ResetPassword";
 
 import BookSpace from "../pages/BookSpace";
 
@@ -38,11 +40,13 @@ function Navigation() {
           <Route path="/" element={<Layout isAdmin={isAdmin} />}>
             <Route index element={<Home />} />
             <Route path="contact" element={<Contact />} />
-            <Route path="register" element={<Register />} />
-            <Route path="login" element={<Login />} />
-            <Route path="logout" element={<Logout />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="account/register" element={<Register />} />
+            <Route path="account/register/personal" element={<RegisterPersonal />} />
+            <Route path="account/register/corporate" element={<RegisterCorporate />} />
+            <Route path="account/login" element={<Login />} />
+            <Route path="account/logout" element={<Logout />} />
+            <Route path="account/forgot-password" element={<ForgotPassword />} />
+            <Route path="account/reset-password" element={<ResetPassword />} />
             <Route path="book-space" element={<BookSpace />} />
             <Route path="admin/dashboard" element={<Dashboard />} />
             <Route path="admin/members" element={<Members />} />

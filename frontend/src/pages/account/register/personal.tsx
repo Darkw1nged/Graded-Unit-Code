@@ -2,10 +2,6 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
 const Page = () => {
-    if (document.cookie.includes("userToken")) {
-        window.location.href = "/";
-    }
-
     const [formValues, setFormValues] = useState({
         forename: '',
         surname: '',
@@ -24,24 +20,6 @@ const Page = () => {
 
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        fetch('http://localhost:5000/account/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formValues),
-        })
-        .then(response => response.json())
-        .then(data => {
-            window.location.href = "/login";
-        })
-        .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error);
-            if (error.response && error.response.status === 409) {
-                console.log("account with this email already exists");
-            }
-        });
     }
 
     return (
@@ -90,13 +68,13 @@ const Page = () => {
                         <input type="email" name="email" placeholder="Email" value={formValues.email} onChange={handleInputChange} required />
                         <input type="password" name="password" placeholder="Password" value={formValues.password} onChange={handleInputChange} required />
                         <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formValues.confirmPassword} onChange={handleInputChange} required />
-                        <input type="submit" value="Next" />
+                        <input type="submit" value="Submit" />
                     </form>
-                    <p className="login-account">Already have an account? <Link to="/login">Login</Link></p>
+                    <p className="form-link">Already have an account? <Link to="/account/login">Login</Link></p>
                 </div>
             </div>
         </div>
     )
-};
+}
 
 export default Page;

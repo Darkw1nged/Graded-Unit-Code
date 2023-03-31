@@ -7,35 +7,25 @@ const Page = () => {
     }
 
     const [formValues, setFormValues] = useState({
+        buisnessName: '',
         email: '',
+        telephone: '',
+        password: '',
+        confirmPassword: ''
     });
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
         setFormValues({
             ...formValues,
-            [name]: value,
+            [name]: value
         });
     }
 
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        fetch('http://localhost:5000/account/forgot-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formValues),
-        })
-        .then(response => response.json())
-        .then(response => {
-        })
-        .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error);
-        });
     }
-
+    
     return (
         <div className="form-body">
             <div className="navigation">
@@ -46,20 +36,22 @@ const Page = () => {
             
             <div className="container">
                 <div className="form">
-                    <h1>Forgot Password</h1>
+                    <h1>Register</h1>
                     <hr />
-                    <p className="information">Enter your email address to receive a link to reset your password.</p>
-            
-                    <form onSubmit={handleFormSubmit}>
+                    
+                    <form onSubmit={handleFormSubmit} name="register-form">
+                        <input type="text" name="buisnessName" placeholder="Buisness Name" value={formValues.buisnessName} onChange={handleInputChange} required />
                         <input type="email" name="email" placeholder="Email" value={formValues.email} onChange={handleInputChange} required />
-                        <input type="submit" value="Send Link" />
+                        <input type="tel" name="telephone" placeholder="Telephone" value={formValues.telephone} onChange={handleInputChange} required />
+                        <input type="password" name="password" placeholder="Password" value={formValues.password} onChange={handleInputChange} required />
+                        <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formValues.confirmPassword} onChange={handleInputChange} required />
+                        <input type="submit" value="Submit" />
                     </form>
-                    <p className="register-account">Don't have an account? <Link to="/register">Sign up</Link></p>
-                    <p className="has-account">Remember the password? <Link to="/login">Login</Link></p>
+                    <p className="form-link">Already have an account? <Link to="/account/login">Login</Link></p>
                 </div>
-            </div>        
+            </div>
         </div>
-    )
-};
+    );
+}
 
 export default Page;

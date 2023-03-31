@@ -26,7 +26,7 @@ const Home = () => {
                       <li><Link to="/admin/dashboard" onClick={toggleAdmin}>Dashboard</Link></li>
                       <li><Link to="">Profile</Link></li>
                       <li><Link to="">Edit Profile</Link></li>
-                      <li><Link to="Logout">Logout</Link></li>
+                      <li><Link to="/account/Logout">Logout</Link></li>
                     </ul>
                   </div>
                 </li>
@@ -38,7 +38,7 @@ const Home = () => {
                 <li><Link to="/">Home</Link></li>
                 <li><Link to="book-space">Book</Link></li>
                 <li><Link to="contact">Contact</Link></li>
-                <li><Link to="login" className="important">Login</Link></li>
+                <li><Link to="/account/login" className="important">Login</Link></li>
               </ul>
             </nav>
           )

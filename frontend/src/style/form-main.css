@@ -199,7 +199,7 @@
     transition: .3s;
 }
 
-.container .form .forgot-password {
+.container .form .form-link {
     margin-top: 1rem;
     text-align: center;
     width: 65%;
@@ -208,66 +208,12 @@
     transition: .3s;
 }
 
-.container .form .forgot-password a {
+.container .form .form-link a {
     color: #327aff;
     text-decoration: none;
 }
 
-.container .form .forgot-password a:hover {
-    color: #3c32ff;
-}
-
-.container .form .register-account {
-    margin-top: 1rem;
-    text-align: center;
-    width: 65%;
-    font-size: 1.2rem;
-    color: #000000;
-    transition: .3s;
-}
-
-.container .form .register-account a {
-    color: #327aff;
-    text-decoration: none;
-}
-
-.container .form .register-account a:hover {
-    color: #3c32ff;
-}
-
-.container .form .login-account {
-    margin-top: 1rem;
-    text-align: center;
-    width: 65%;
-    font-size: 1.2rem;
-    color: #000000;
-    transition: .3s;
-}
-
-.container .form .login-account a {
-    color: #327aff;
-    text-decoration: none;
-}
-
-.container .form .login-account a:hover {
-    color: #3c32ff;
-}
-
-.container .form .has-account {
-    margin-top: 1rem;
-    text-align: center;
-    width: 65%;
-    font-size: 1.2rem;
-    color: #000000;
-    transition: .3s;
-}
-
-.container .form .has-account a {
-    color: #327aff;
-    text-decoration: none;
-}
-
-.container .form .has-account a:hover {
+.container .form .form-link a:hover {
     color: #3c32ff;
 }
 
@@ -277,4 +223,57 @@
     font-size: 1.2rem;
     margin-bottom: 1rem;
     margin-bottom: 40px;
+}
+
+.container .form ul {
+    width: 45%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.container .form ul li {
+    list-style: none;
+}
+
+.container .form ul li a {
+    text-decoration: none;
+    font-size: 1.5rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    transition: .3s;
+}
+
+.container .form .personal-account a {
+    background-color: #327aff;
+    color: #fff;
+
+    border: 2px solid #327aff;
+    border-radius: 5px;
+    padding: 10px 20px;
+
+    transition: .2s;
+}
+
+.container .form .personal-account a:hover {
+    background-color: transparent;
+    color: #327aff;
+}
+
+.container .form .corporate-account a {
+    color: #327aff;
+
+    border: 2px solid #327aff;
+    border-radius: 5px;
+    padding: 10px 20px;
+
+    transition: .2s;
+}
+
+.container .form .corporate-account a:hover {
+    background-color: #327aff;
+    color: #fff;
 }

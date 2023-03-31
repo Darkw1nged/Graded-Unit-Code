@@ -17,10 +17,12 @@ const Layout = ({ isAdmin }: LayoutProps) => {
 
     // If the current location is one of the following, don't show the navigation
     if (
-        location.pathname === "/login" ||
-        location.pathname === "/register" ||
-        location.pathname === "/forgot-password" ||
-        location.pathname === "/reset-password" ||
+        location.pathname === "/account/login" ||
+        location.pathname === "/account/register" ||
+        location.pathname === "/account/register/personal" ||
+        location.pathname === "/account/register/corporate" ||
+        location.pathname === "/account/forgot-password" ||
+        location.pathname === "/account/reset-password" ||
         location.pathname === "/book-space" ||
         location.pathname === "/"
     ) return <Outlet />;
