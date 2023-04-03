@@ -47,6 +47,7 @@ const Page = () => {
                         <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formValues.confirmPassword} onChange={handleInputChange} required />
                         <input type="submit" value="Submit" />
                     </form>
+                    <p className="form-link">Need a personal account? <Link to="/account/register/personal">Click here</Link></p>
                     <p className="form-link">Already have an account? <Link to="/account/login">Login</Link></p>
                 </div>
             </div>

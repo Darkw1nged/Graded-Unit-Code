@@ -34,6 +34,7 @@ const Page = () => {
                             <Link to="/account/register/corporate">Business</Link>
                         </li>
                     </ul>
+                    <p className="form-link">Remember the password? <Link to="/account/login">Login</Link></p>
                 </div>
             </div>
         </div>
