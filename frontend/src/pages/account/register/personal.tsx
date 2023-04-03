@@ -23,6 +23,21 @@ const Page = () => {
 
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        fetch('http://localhost:5000/account/register/personal', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formValues)
+        })
+        .then(res => res.json())
+        .then(response => {
+            console.log(response);
+        })
+        .catch(err => {
+            console.log('There was a problem with the fetch operation:', err);
+        });
     }
 
     return (

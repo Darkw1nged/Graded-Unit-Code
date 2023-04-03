@@ -28,11 +28,10 @@ pool.query(
     roleID INT NOT NULL,
     forename VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
-    address VARCHAR(255),
-    postcode VARCHAR(255),
+    addressID VARCHAR(255),
     telephone VARCHAR(255),
     mobile VARCHAR(255),
-    FOREIGN KEY (roleID) REFERENCES roles(roleID)
+    FOREIGN KEY (roleID, addressID) REFERENCES roles(roleID), addresses(addressID)
   )`,
   (err, results, fields) => {
     if (err) {
@@ -52,9 +51,11 @@ pool.query(
   `CREATE TABLE IF NOT EXISTS corporate (
     email VARCHAR(255) NOT NULL PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
+    roleID INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     telephone VARCHAR(255) NOT NULL,
-    address VARCHAR(255) NOT NULL
+    addressID VARCHAR(255),
+    FOREIGN KEY (addressID) REFERENCES addresses(addressID)
   )`,
   (err, results, fields) => {
     if (err) {
@@ -87,8 +88,8 @@ pool.query(
 );
 
 // -- Above is complete
-    
 
+// ---------------------------------- OLD CODE ----------------------------------
 /**
  * Create the sessions table
  * @param {Error} err - Any error encountered while creating the table
@@ -235,8 +236,9 @@ export default pool.promise();
 /**
  * Create some roles
  */
-// Role.create(1, 'Customer');
-// Role.create(2, 'Invoices_Clerk');
-// Role.create(3, 'Bookings_Clerk');
-// Role.create(4, 'Manager');
-// Role.create(5, 'Admin');
+// Role.create(1, 'personal');
+// Role.create(2, 'Corporate');
+// Role.create(3, 'Invoices_Clerk');
+// Role.create(4, 'Bookings_Clerk');
+// Role.create(5, 'Manager');
+// Role.create(6, 'Admin');

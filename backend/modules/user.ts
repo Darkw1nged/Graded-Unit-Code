@@ -56,7 +56,7 @@ export default class User {
      * @memberof User
      * @description This is the role that the user has in the system.
      */
-    role: number;
+    roleID: number;
 
     /**
      * The user's address.
@@ -96,12 +96,12 @@ export default class User {
      * @memberof User
      * @description This is the constructor for the user class.
      */
-    constructor(forename: string, lastname: string, email: string, password: string, role: number, address?: Address, telephone?: string, mobile?: string) {
+    constructor(forename: string, lastname: string, email: string, password: string, roleID: number, address?: Address, telephone?: string, mobile?: string) {
         this.forename = forename;
         this.lastname = lastname;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.roleID = roleID;
         this.address = address;
         this.telephone = telephone;
         this.mobile = mobile;
@@ -121,7 +121,7 @@ export default class User {
      * @memberof User
      * @description This function creates a new user in the database.
      */
-    static async create(
+    static async createPersonal(
         forename: string,
         lastname: string,
         email: string,
@@ -156,30 +156,54 @@ export default class User {
 
             // Now we can create the user.
             await connection.query(
-                'INSERT INTO users (email, password, roleID, forename, lastname, telephone, mobile, addressID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [email, password, roleID, forename, lastname, telephone, mobile, addressID]
+                'INSERT INTO users (email, password, roleID, forename, lastname, addressID, telephone, mobile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [email, password, roleID, forename, lastname, addressID, telephone, mobile]
             );
         } finally {
             connection.release();
         }
     }
 
-    // Above is fixed code
-
     /**
      * Finds a user by their email address.
      * @param email The user's email address.
      * @returns The found user, or null if no user was found.
+     * @memberof User
+     * @description This function finds a user by their email address.
      */
     static async findByEmail(email: string): Promise<User | null> {
+        // Get a connection from the pool
         const connection = await pool.getConnection();
+
+        // Try and query the database
         try {
-            const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
-            return rows.length ? new User(rows[0].forename, rows[0].lastname, rows[0].address, rows[0].postcode, rows[0].telephone, rows[0].mobile, rows[0].email, rows[0].password) : null;
+            // Query the database for the user
+            const [rows] = await connection.query(
+                'SELECT * FROM users WHERE email = ?',
+                [email]
+            );
+
+            // If the user was found, we need to create a new user object.
+            if (rows.length > 0) {
+                return new User(
+                    rows[0].forename,
+                    rows[0].lastname,
+                    rows[0].email,
+                    rows[0].password,
+                    rows[0].roleID,
+                    rows[0].addressID,
+                    rows[0].telephone,
+                    rows[0].mobile
+                );
+            }
+            // If the user was not found, return null
+            return null;
         } finally {
             connection.release();
         }
     }
+
+    // ---------------------------------- OLD CODE ----------------------------------
 
     /**
      * Gets and compares the users password.

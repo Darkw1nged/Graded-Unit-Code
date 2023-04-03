@@ -38,6 +38,14 @@ export default class Corporate {
     password: string;
 
     /**
+     * The corporate's role (Role ID).
+     * @type {number}
+     * @memberof Corporate
+     * @description This is the role that the corporate has.
+     */
+    roleID: number;
+
+    /**
      * The corporate's telephone number.
      * @type {string}
      * @memberof Corporate
@@ -63,10 +71,11 @@ export default class Corporate {
      * @memberof Corporate
      * @description This is the constructor for the Corporate class.
      */
-    constructor(name: string, email: string, password: string, telephone: string, address: Address) {
+    constructor(name: string, email: string, password: string, roleID: number, telephone: string, address: Address) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.roleID = roleID;
         this.telephone = telephone;
         this.address = address;
     }
@@ -76,16 +85,18 @@ export default class Corporate {
      * @param {string} name
      * @param {string} email
      * @param {string} password
+     * @param {number} roleID
      * @param {string} telephone
      * @param {Address} address
      * @returns {Promise<void>}
      * @memberof Corporate
      * @description This method creates a new corporate.
      */
-    static async create(
+    static async createCorporate(
         name: string,
         email: string,
         password: string,
+        roleID: number,
         telephone: string,
         address?: Address
     ): Promise<void> {
@@ -113,14 +124,50 @@ export default class Corporate {
 
             // Now we can create the corporate.
             await connection.query(
-                'INSERT INTO `corporate` (`name`, `email`, `password`, `telephone`, `addressID`) VALUES (?, ?, ?, ?, ?)',
-                [name, email, password, telephone, addressID.id]
+                'INSERT INTO `corporate` (`email`, `password`, `roleID`, `name`, `telephone`, `addressID`) VALUES (?, ?, ?, ?, ?, ?)',
+                [email, password, roleID, name, telephone, addressID.id]
             );
-        } catch (error) {
-            throw error;
         } finally {
             connection.release();
         }        
+    }
+
+    /**
+     * The method that gets a corporate by their email address.
+     * @param {string} email
+     * @returns {Promise<Corporate>}
+     * @memberof Corporate
+     * @description This method gets a corporate by their email address.
+     */
+    static async findByEmail(email: string): Promise<Corporate | null> {
+        // Get a connection from the pool.
+        const connection = await pool.getConnection();
+
+        // Try and query the database.
+        try {
+            // Query the database for the corporate.
+            const corporate = await connection.query(
+                'SELECT * FROM `corporate` WHERE `email` = ?',
+                [email]
+            );
+
+            // If a corporate was found, we need to return it.
+            if (corporate.length > 0) {
+                return new Corporate(
+                    corporate[0].name,
+                    corporate[0].email,
+                    corporate[0].password,
+                    corporate[0].roleID,
+                    corporate[0].telephone,
+                    corporate[0].addressID
+                );
+            }
+
+            // If no corporate was found, we need to return null.
+            return null;
+        } finally {
+            connection.release();
+        }
     }
 
 }

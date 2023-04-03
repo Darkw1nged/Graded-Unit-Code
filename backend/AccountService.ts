@@ -1,19 +1,88 @@
 import { Request, Response } from 'express';
-import user from './modules/user';
 import { hashSync, genSaltSync } from 'bcrypt';
 import { sendEmail } from './email-service';
 
-class AccountHandler {
+import user from './modules/user';
+import corporate from './modules/corporate';
+
+/**
+ * The account service.
+ * @class AccountService
+ * @module AccountService
+ * @description The account service for handling requests from the frontend.
+ */
+class AccountService {
+
+    // ---------------------------------- NEW CODE ----------------------------------
+    // This is the new code that I added to the AccountService.ts file.
+    // I added the following methods to the AccountService class:
+    // - createCorporate
+    // - createPersonal
+    // - login
+    // - logout
+    // - forgotPassword
+    // - resetPassword
 
     /**
-     * Creates a new user.
+     * Creates a new corporate account.
      * @param req The request.
      * @param res The response.
-     * @returns The user's details.
+     * @returns The corporate's details.
      * @throws 409 if the email already exists.
-     * @throws 500 if the user could not be created.
+     * @throws 500 if the corporate could not be created.
      */
-    static async create(req: Request, res: Response) {
+    static async createCorporate(req: Request, res: Response) {
+        // get data from request
+        const { buisnessName, email, telephone, password, confirmedPassword } = req.body;
+
+        // check if passwords match
+        if (password !== confirmedPassword) {
+            res.status(409).json({ message: 'Passwords do not match' });
+            return;
+        }
+
+        // hash password
+        const salt = genSaltSync(10);
+        const hashedPassword = hashSync(password, salt);
+        // role is always 2 (corporate)
+        const roleID = 2;
+
+        // check if email already exists
+        const existingCorporate = await corporate.findByEmail(email);
+        if (existingCorporate) {
+            res.status(409).json({ message: 'An account with that email already exists' });
+            return;
+        }
+
+        // call create method
+        try {
+            await corporate.createCorporate(buisnessName, email, hashedPassword, roleID, telephone);
+            
+            res.status(201).json({
+                message: 'Ccorporate account created successfully',
+                data: {
+                    buisnessName,
+                    email,
+                    telephone,
+                    password: hashedPassword,
+                    roleID
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Something went wrong' });
+        }
+    }
+
+    /**
+     * Creates a new personal account.
+     * @param req The request.
+     * @param res The response.
+     * @returns The personal's details.
+     * @throws 409 if the email already exists.
+     * @throws 500 if the personal could not be created.
+     */
+    static async createPersonal(req: Request, res: Response) {
         // get data from request
         const { forename, surname, email, password, confirmedPassword } = req.body;
 
@@ -26,28 +95,31 @@ class AccountHandler {
         // hash password
         const salt = genSaltSync(10);
         const hashedPassword = hashSync(password, salt);
-        // role is always 1 (customer) for now
-        const role = 1;
+        // role is always 1 (personal)
+        const roleID = 1;
 
         // check if email already exists
         const existingUser = await user.findByEmail(email);
         if (existingUser) {
-            res.status(409).json({ message: 'Email already exists' });
+            res.status(409).json({ message: 'An account with that email already exists' });
             return;
         }
 
         // call create method
         try {
-            await user.create(forename, surname, email, hashedPassword, role);
+            await user.createPersonal(forename, surname, email, hashedPassword, roleID);
 
-            res.status(201).json({ 
-                message: 'Account created successfully',
+            // send email
+            await sendEmail(email, 'Account created', 'You have successfully created a corporate account.');
+
+            res.status(201).json({
+                message: 'Personal account created successfully',
                 data: {
                     forename,
                     surname,
                     email,
                     password: hashedPassword,
-                    role
+                    roleID
                 }
             });
         } catch (error) {
@@ -55,6 +127,10 @@ class AccountHandler {
             res.status(500).json({ message: 'Something went wrong' });
         }
     }
+    
+    // ---------------------------------- OLD CODE ----------------------------------
+    // This is the old code that was already in the AccountService.ts file.
+    // I did not change any of the following methods.
 
     /**
      * Logs a user in.
@@ -214,4 +290,4 @@ class AccountHandler {
 
 }
 
-export default AccountHandler;
+export default AccountService;

@@ -2,8 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
-import AccountHandler from './AccountHandler';
+import AccountService from './AccountService';
 
 /**
  * Represents an Express server that listens for incoming requests.
@@ -52,11 +51,13 @@ class Server {
             console.log(`Server listening on port ${port}`);
         });
         
-        this.app.post('/account/create', AccountHandler.create);
-        this.app.post('/account/login', AccountHandler.login);
-        this.app.post('/account/logout', AccountHandler.logout);
-        this.app.post('/account/forgot-password', AccountHandler.forgotPassword);
-        this.app.post('/account/reset-password', AccountHandler.resetPassword);
+        this.app.post('/account/register/corporate', AccountService.createCorporate);
+        this.app.post('/account/register/personal', AccountService.createPersonal);
+
+        // this.app.post('/account/login', AccountHandler.login);
+        // this.app.post('/account/logout', AccountHandler.logout);
+        // this.app.post('/account/forgot-password', AccountHandler.forgotPassword);
+        // this.app.post('/account/reset-password', AccountHandler.resetPassword);
     }
 
     private app: express.Application;
