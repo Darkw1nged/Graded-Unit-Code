@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import redirectIfLoggedIn from '~/components/redirects';
 
 const Page = () => {
-    if (document.cookie.includes("userToken")) {
-        window.location.href = "/";
-    }
+    redirectIfLoggedIn();
 
     const [formValues, setFormValues] = useState({
         buisnessName: '',

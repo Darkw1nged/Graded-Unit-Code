@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import redirectIfLoggedIn from '~/components/redirects';
 
 const Page = () => {
+    redirectIfLoggedIn();
+
     const [registrationType, setRegistrationType] = useState('');
 
     const handleRegistrationType = (type: string) => {

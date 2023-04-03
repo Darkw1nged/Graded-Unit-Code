@@ -1,6 +1,6 @@
 .form-body {
     width: 1220px;
-    height: 947px;
+    height: 100vh;
 
     background-image: url(../images/background.jpg);
     background-size: cover;
@@ -10,7 +10,7 @@
 
 .container {
     width: 700px;
-    height: 947px;
+    height: 100vh;
     background-color: #eeeeee;
 
     position: absolute;

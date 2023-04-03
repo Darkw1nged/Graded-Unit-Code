@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import redirectIfLoggedIn from '~/components/redirects';
 
 const Page = () => {
+    redirectIfLoggedIn();
+    
     const [formValues, setFormValues] = useState({
         forename: '',
         surname: '',

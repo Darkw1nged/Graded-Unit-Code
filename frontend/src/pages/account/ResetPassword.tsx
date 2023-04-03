@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import redirectIfLoggedIn from '~/components/redirects';
 import qs from 'qs';
 
 const Page = () => {
-    if (document.cookie.includes("userToken")) {
-        window.location.href = "/";
-    }
+    redirectIfLoggedIn();
 
     const { search } = useLocation();
     const { token } = qs.parse(search, { ignoreQueryPrefix: true });
