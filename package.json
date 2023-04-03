@@ -28,6 +28,7 @@
     },
     "devDependencies": {
         "@types/node": "^16.18.18",
+        "tsconfig-paths-webpack-plugin": "^4.0.1",
         "typescript": "^4.5.5"
     }
 }

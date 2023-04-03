@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import redirectIfLoggedIn from '~/components/redirects';
+import redirectIfLoggedIn from '../../components/redirects';
 import qs from 'qs';
 
 const Page = () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import redirectIfLoggedIn from '~/components/redirects';
+import redirectIfLoggedIn from '../../components/redirects';
 
 const Page = () => {
     redirectIfLoggedIn();
