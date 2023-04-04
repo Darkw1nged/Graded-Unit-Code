@@ -15,16 +15,6 @@ import sessions from './modules/sessions';
  */
 class AccountService {
 
-    // ---------------------------------- NEW CODE ----------------------------------
-    // This is the new code that I added to the AccountService.ts file.
-    // I added the following methods to the AccountService class:
-    // - createCorporate
-    // - createPersonal
-    // - login
-    // - logout
-    // - forgotPassword
-    // - resetPassword
-
     /**
      * Creates a new corporate account.
      * @memberof AccountService
@@ -269,95 +259,120 @@ class AccountService {
             message: 'Logout successful'
         });
     }
-    
-    // ---------------------------------- OLD CODE ----------------------------------
-    // This is the old code that was already in the AccountService.ts file.
-    // I did not change any of the following methods.
 
-    // /**
-    //  * Sends a password reset email.
-    //  * @param req The request.
-    //  * @param res The response.
-    //  * @returns The user's token.
-    //  * @throws 404 if the email does not exist.
-    //  * @throws 500 if the email could not be sent.
-    //  */
-    // static async forgotPassword(req: Request, res: Response) {
-    //     // get data from request
-    //     const { email } = req.body;
+    /**
+     * Sends a password reset email.
+     * @memberof AccountService
+     * @description Sends a password reset email.
+     * @param req The request.
+     * @param res The response.
+     * @returns The user's token.
+     * @throws 404 if the email does not exist.
+     * @throws 500 if the email could not be sent.
+     */
+    static async forgotPassword(req: Request, res: Response) {
+        // get data from request
+        const { email } = req.body;
 
-    //     // check if email already exists
-    //     const existingUser = await user.findByEmail(email);
-    //     if (!existingUser) {
-    //         res.status(404).json({ message: 'Email does not exist' });
-    //         return;
-    //     }
+        // Check if the user is a corporate or a personal user
+        const corporateUser = await corporate.findByEmail(email);
+        const personalUser = await user.findByEmail(email);
 
-    //     // generate token
-    //     const token = await user.generateToken(email, 60 * 60);
+        // Check if there is an account with the given email
+        if (!corporateUser && !personalUser) {
+            res.status(404).json({ message: 'Email does not exist' });
+            return;
+        }
 
-    //     // send email
-    //     try {
-    //         await sendEmail(email, 'Password reset', `Click here to reset your password: http://localhost:3000/reset-password?token=${token}`);
-    //     } catch (error) {
-    //         console.error(error);
-    //         res.status(500).json({ message: 'Something went wrong' });
-    //         return;
-    //     }
+        // create a token
+        const token = sessions.generateToken(email, 60 * 60);
+        // create a link
+        const link = `http://localhost:3000/reset-password?token=${token}`;
 
-    //     res.status(200).json({ 
-    //         message: 'Email sent successfully',
-    //         data: {
-    //             token
-    //         }
-    //     });
-    // }
+        // send email
+        try {
+            await sendEmail(email, 'Password Reset', `Click the link to reset your password: ${link}`);
+        } catch (error) {
+            res.status(500).json({ message: 'Something went wrong' });
+            return;
+        }
 
-    // /**
-    //  * Resets a user's password.
-    //  * @param req The request.
-    //  * @param res The response.
-    //  * @throws 404 if the email does not exist.
-    //  * @throws 401 if the token is invalid.
-    //  */
-    // static async resetPassword(req: Request, res: Response) {
-    //     // get data from request
-    //     const { password, confirmedPassword, token } = req.body;
+        res.status(200).json({
+            message: 'Email sent'
+        });
+    }
 
-    //     // check if passwords match
-    //     if (password !== confirmedPassword) {
-    //         res.status(409).json({ message: 'Passwords do not match' });
-    //         return;
-    //     }
+    /**
+     * Resets a user's password.
+     * @memberof AccountService
+     * @description Resets a user's password.
+     * @param req The request.
+     * @param res The response.
+     * @throws 404 if the email does not exist.
+     * @throws 401 if the token is invalid.
+     * @throws 409 if the passwords do not match.
+     * @throws 500 if the password could not be updated.
+     * @returns The user's token.
+     */
+    static async resetPassword(req: Request, res: Response) {
+        // get data from request
+        const { password, confirmedPassword, token } = req.body;
+        
+        // check if passwords match
+        if (password !== confirmedPassword) {
+            res.status(409).json({ message: 'Passwords do not match' });
+            return;
+        }
 
-    //     // check if token is valid
-    //     const isTokenValid = await user.validateToken(token);
-    //     if (!isTokenValid) {
-    //         res.status(401).json({ message: 'Token is invalid' });
-    //         return;
-    //     }
+        // check if token is valid
+        const isTokenValid = await sessions.verifyToken(token);
 
-    //     // get the email from the token
-    //     const email = await user.getUserFromToken(token);
-    //     if (!email) {
-    //         res.status(401).json({ message: 'Token is invalid' });
-    //         return;
-    //     }
+        // check if token is valid
+        if (!isTokenValid) {
+            res.status(401).json({ message: 'Token is invalid' });
+            return;
+        }
 
-    //     // hash password
-    //     const salt = genSaltSync(10);
-    //     const hashedPassword = hashSync(password, salt);
+        // get email from token
+        const email = await sessions.getEmail(token);
+        if (!email) {
+            res.status(401).json({ message: 'Token is invalid' });
+            return;
+        }
 
-    //     // update password
-    //     await user.updatePassword(email, hashedPassword);
+        // Check if the user is a corporate or a personal user
+        const corporateUser = await corporate.findByEmail(email);
+        const personalUser = await user.findByEmail(email);
 
-    //     // delete session
-    //     await user.deleteSession(email);
+        // Check if there is an account with the given email
+        if (!corporateUser && !personalUser) {
+            res.status(404).json({ message: 'Email does not exist' });
+            return;
+        }
 
-    //     res.status(200).json({ 
-    //         message: 'Password reset successfully'
-    //     });
-    // }
+        // get a connection from the pool
+        const connection = await pool.getConnection();
+        
+        // Try and query the database
+        try {
+            // For corporate users
+            if (corporateUser) {
+                await connection.query('UPDATE corporate SET password = ? WHERE email = ?', [password, email]);
+            } else if (personalUser) {
+                await connection.query('UPDATE users SET password = ? WHERE email = ?', [password, email]);
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Something went wrong' });
+            return;
+        } finally {
+            // release the connection
+            connection.release();
+        }
+
+        res.status(200).json({
+            message: 'Password reset successful'
+        });
+    }
 
 }
 
