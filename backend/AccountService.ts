@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { hashSync, genSaltSync } from 'bcrypt';
 import { sendEmail } from './email-service';
 
+import pool from './database';
 import user from './modules/user';
 import corporate from './modules/corporate';
+import sessions from './modules/sessions';
 
 /**
  * The account service.
@@ -25,6 +27,8 @@ class AccountService {
 
     /**
      * Creates a new corporate account.
+     * @memberof AccountService
+     * @description Creates a new corporate account.
      * @param req The request.
      * @param res The response.
      * @returns The corporate's details.
@@ -76,6 +80,8 @@ class AccountService {
 
     /**
      * Creates a new personal account.
+     * @memberof AccountService
+     * @description Creates a new personal account.
      * @param req The request.
      * @param res The response.
      * @returns The personal's details.
@@ -127,66 +133,127 @@ class AccountService {
             res.status(500).json({ message: 'Something went wrong' });
         }
     }
-    
-    // ---------------------------------- OLD CODE ----------------------------------
-    // This is the old code that was already in the AccountService.ts file.
-    // I did not change any of the following methods.
 
     /**
-     * Logs a user in.
+     * Logs a user in (corporate included).
+     * @memberof AccountService
+     * @description Logs a user in (corporate included).
      * @param req The request.
      * @param res The response.
      * @returns The user's token.
      * @throws 404 if the email does not exist.
      * @throws 401 if the password is incorrect.
+     * @throws 500 if the user could not be logged in.
      */
     static async login(req: Request, res: Response) {
         // get data from request
         const { email, password, rememberMe } = req.body;
 
-        // check if email already exists
-        const existingUser = await user.findByEmail(email);
-        if (!existingUser) {
+        // Check if the user is a corporate or a personal user
+        const corporateUser = await corporate.findByEmail(email);
+        const personalUser = await user.findByEmail(email);
+
+        // Check if there is an account with the given email
+        if (!corporateUser && !personalUser) {
             res.status(404).json({ message: 'Email does not exist' });
             return;
         }
 
-        // check if password is correct
-        const isPasswordCorrect = await user.comparePassword(email, password);
+        // Check if the password is correct
+        let isPasswordCorrect;
+        if (corporateUser) {
+            isPasswordCorrect = await this.comparePassword(email, password);
+        } else if (personalUser) {
+            isPasswordCorrect = await this.comparePassword(email, password);
+        }
+
         if (!isPasswordCorrect) {
-            console.log('Password is incorrect')
             res.status(401).json({ message: 'Password is incorrect' });
             return;
         }
 
-        // generate token
-        let token;
-        let expiresIn;
-        if (rememberMe) {
-            token = await user.generateToken(email, 30 * 24 * 60 * 60);
-            expiresIn = 30 * 24 * 60 * 60;
-        } else {
-            token = await user.generateToken(email, 60 * 60);
-            expiresIn = 60 * 60;
+        // Get how long the token should last
+        const expiresIn = rememberMe ?  30 * 24 * 60 * 60 : 60 * 60;
+        // Create the token
+        const secret = await sessions.generateToken(email, expiresIn);
+
+        // start session
+        sessions.createSession(email, secret, expiresIn);
+
+        // Send the token
+        try {
+            res.status(200).json({
+                messaage: 'Login successful',
+                data: {
+                    token: secret,
+                    expiresIn
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Something went wrong' });
+        }
+    }
+
+    /**
+     * This compares the password that the user entered with the password that is stored in the database.
+     * @memberof AccountService
+     * @description This compares the password that the user entered with the password that is stored in the database.
+     * @param email The email of the user or corportate.
+     * @param password The password that the user entered.
+     * @returns True if the password is correct, false if it is not.
+     */
+    static async comparePassword(email: string, password: string): Promise<boolean> {
+        // Check if the user is a corporate or a personal user
+        const corporateUser = await corporate.findByEmail(email);
+        const personalUser = await user.findByEmail(email);
+
+        // Check if there is an account with the given email
+        if (!corporateUser && !personalUser) {
+            return false;
         }
 
-        // create session
-        await user.createSession(email, token, expiresIn);
+        // get a connection from the pool
+        const connection = await pool.getConnection();
 
-        // send email
-        await sendEmail(email, 'Login successful', 'You have successfully logged in to your account.');
+        // Check if the password is correct
+        let isPasswordCorrect;
 
-        res.status(200).json({ 
-            message: 'Login successful',
-            data: {
-                token,
-                expiresIn
+        // Try and query the database
+        try {
+            // For corporate users
+            if (corporateUser) {
+                const [rows] = await connection.query('SELECT password FROM corporate WHERE email = ?', [email]);
+                
+                // Check if an account with the given email exists
+                if (rows.length === 0) {
+                    return false;
+                }
+
+                // Check if the password is correct
+                isPasswordCorrect = password == rows[0].password;
+            } else if (personalUser) {
+                const [rows] = await connection.query('SELECT password FROM personal WHERE email = ?', [email]);
+
+                // Check if an account with the given email exists
+                if (rows.length === 0) {
+                    return false;
+                }
+
+                // Check if the password is correct
+                isPasswordCorrect = password == rows[0].password;
             }
-        });
+        } finally {
+            // release the connection
+            connection.release();
+        }
+        return isPasswordCorrect ? true : false;
     }
 
     /**
      * Logs a user out.
+     * @memberof AccountService
+     * @description Logs a user out.
      * @param req The request.
      * @param res The response.
      * @returns The user's token.
@@ -196,97 +263,101 @@ class AccountService {
         const { userToken } = req.body;
 
         // delete session
-        await user.deleteSession(userToken);
+        await sessions.deleteSession(userToken);
         
         res.status(200).json({
             message: 'Logout successful'
         });
     }
+    
+    // ---------------------------------- OLD CODE ----------------------------------
+    // This is the old code that was already in the AccountService.ts file.
+    // I did not change any of the following methods.
 
-    /**
-     * Sends a password reset email.
-     * @param req The request.
-     * @param res The response.
-     * @returns The user's token.
-     * @throws 404 if the email does not exist.
-     * @throws 500 if the email could not be sent.
-     */
-    static async forgotPassword(req: Request, res: Response) {
-        // get data from request
-        const { email } = req.body;
+    // /**
+    //  * Sends a password reset email.
+    //  * @param req The request.
+    //  * @param res The response.
+    //  * @returns The user's token.
+    //  * @throws 404 if the email does not exist.
+    //  * @throws 500 if the email could not be sent.
+    //  */
+    // static async forgotPassword(req: Request, res: Response) {
+    //     // get data from request
+    //     const { email } = req.body;
 
-        // check if email already exists
-        const existingUser = await user.findByEmail(email);
-        if (!existingUser) {
-            res.status(404).json({ message: 'Email does not exist' });
-            return;
-        }
+    //     // check if email already exists
+    //     const existingUser = await user.findByEmail(email);
+    //     if (!existingUser) {
+    //         res.status(404).json({ message: 'Email does not exist' });
+    //         return;
+    //     }
 
-        // generate token
-        const token = await user.generateToken(email, 60 * 60);
+    //     // generate token
+    //     const token = await user.generateToken(email, 60 * 60);
 
-        // send email
-        try {
-            await sendEmail(email, 'Password reset', `Click here to reset your password: http://localhost:3000/reset-password?token=${token}`);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Something went wrong' });
-            return;
-        }
+    //     // send email
+    //     try {
+    //         await sendEmail(email, 'Password reset', `Click here to reset your password: http://localhost:3000/reset-password?token=${token}`);
+    //     } catch (error) {
+    //         console.error(error);
+    //         res.status(500).json({ message: 'Something went wrong' });
+    //         return;
+    //     }
 
-        res.status(200).json({ 
-            message: 'Email sent successfully',
-            data: {
-                token
-            }
-        });
-    }
+    //     res.status(200).json({ 
+    //         message: 'Email sent successfully',
+    //         data: {
+    //             token
+    //         }
+    //     });
+    // }
 
-    /**
-     * Resets a user's password.
-     * @param req The request.
-     * @param res The response.
-     * @throws 404 if the email does not exist.
-     * @throws 401 if the token is invalid.
-     */
-    static async resetPassword(req: Request, res: Response) {
-        // get data from request
-        const { password, confirmedPassword, token } = req.body;
+    // /**
+    //  * Resets a user's password.
+    //  * @param req The request.
+    //  * @param res The response.
+    //  * @throws 404 if the email does not exist.
+    //  * @throws 401 if the token is invalid.
+    //  */
+    // static async resetPassword(req: Request, res: Response) {
+    //     // get data from request
+    //     const { password, confirmedPassword, token } = req.body;
 
-        // check if passwords match
-        if (password !== confirmedPassword) {
-            res.status(409).json({ message: 'Passwords do not match' });
-            return;
-        }
+    //     // check if passwords match
+    //     if (password !== confirmedPassword) {
+    //         res.status(409).json({ message: 'Passwords do not match' });
+    //         return;
+    //     }
 
-        // check if token is valid
-        const isTokenValid = await user.validateToken(token);
-        if (!isTokenValid) {
-            res.status(401).json({ message: 'Token is invalid' });
-            return;
-        }
+    //     // check if token is valid
+    //     const isTokenValid = await user.validateToken(token);
+    //     if (!isTokenValid) {
+    //         res.status(401).json({ message: 'Token is invalid' });
+    //         return;
+    //     }
 
-        // get the email from the token
-        const email = await user.getUserFromToken(token);
-        if (!email) {
-            res.status(401).json({ message: 'Token is invalid' });
-            return;
-        }
+    //     // get the email from the token
+    //     const email = await user.getUserFromToken(token);
+    //     if (!email) {
+    //         res.status(401).json({ message: 'Token is invalid' });
+    //         return;
+    //     }
 
-        // hash password
-        const salt = genSaltSync(10);
-        const hashedPassword = hashSync(password, salt);
+    //     // hash password
+    //     const salt = genSaltSync(10);
+    //     const hashedPassword = hashSync(password, salt);
 
-        // update password
-        await user.updatePassword(email, hashedPassword);
+    //     // update password
+    //     await user.updatePassword(email, hashedPassword);
 
-        // delete session
-        await user.deleteSession(email);
+    //     // delete session
+    //     await user.deleteSession(email);
 
-        res.status(200).json({ 
-            message: 'Password reset successfully'
-        });
-    }
+    //     res.status(200).json({ 
+    //         message: 'Password reset successfully'
+    //     });
+    // }
 
 }
 

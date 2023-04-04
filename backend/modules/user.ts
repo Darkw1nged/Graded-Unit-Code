@@ -1,5 +1,4 @@
 import pool from '../database';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import Address from './address';
 
@@ -166,10 +165,10 @@ export default class User {
 
     /**
      * Finds a user by their email address.
-     * @param email The user's email address.
-     * @returns The found user, or null if no user was found.
      * @memberof User
      * @description This function finds a user by their email address.
+     * @param email The user's email address.
+     * @returns The found user, or null if no user was found.
      */
     static async findByEmail(email: string): Promise<User | null> {
         // Get a connection from the pool
@@ -243,89 +242,4 @@ export default class User {
         }
     }
 
-    /**
-     * Generates a new token for a user.
-     * @param email The user's email address.
-     * @returns The generated token.
-     * @throws An error if the token could not be generated.
-     */
-    static async generateToken(email: string, expirationTime?: number): Promise<string> {
-        const payload = { email };
-        const secret = process.env.JWT_SECRET || 'secret';
-
-        const expiresIn = expirationTime || 604800;
-        const token = jwt.sign(payload, secret, { expiresIn });
-        return token;
-    }
-
-    /**
-     * Validates a token.
-     * @param token The token to validate.
-     * @returns True if the token is valid, false otherwise.
-     * @throws An error if the token could not be validated.
-     */
-    static async validateToken(token: string): Promise<boolean> {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=' + token);
-            if (rows.length === 0) {
-                return false; // invalid token
-            }
-            return true;
-        } finally {
-            connection.release();
-        }
-    }
-
-    /**
-     * Gets the user from a token.
-     * @param token The token to get the user from.
-     * @returns The user.
-     * @throws An error if the user could not be found.
-     */
-    static async getUserFromToken(token: string): Promise<string | null> {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=' + token);
-            if (rows.length === 0) {
-                return null; // No user found
-            }
-
-            return rows[0].email;
-        } finally {
-            connection.release();
-        }
-    }
-
-    /**
-     * Create a new user session.
-     * @param email The user's email address.
-     * @param token The user's token.
-     * @param expiresIn The time until the session expires.
-     * @throws An error if the session could not be created.
-     */
-    static async createSession(email: string, token: string, expiresIn: number): Promise<void> {
-        const connection = await pool.getConnection();
-        try {
-            await connection.query('INSERT INTO sessions (id, email, createdAt, expiresAt) VALUES (?, ?, ?, ?)', [token, email, new Date(), new Date(Date.now() + expiresIn)]);
-        } finally {
-            connection.release();
-        }
-    }
-
-    /**
-     * Deletes a user session.
-     * @param email The user's email.
-     * @throws An error if the session could not be deleted.
-     * @returns True if the session was deleted, false otherwise.
-     */
-    static async deleteSession(token: string): Promise<boolean> {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query('DELETE FROM sessions WHERE id="' + token + '"');
-            return rows.affectedRows === 1;
-        } finally {
-            connection.release();
-        }
-    }
 }

@@ -6,10 +6,15 @@ import AccountService from './AccountService';
 
 /**
  * Represents an Express server that listens for incoming requests.
+ * @class
+ * @description This class is responsible for creating an Express server that listens for incoming requests.
  */
 class Server {
     /**
     * Creates a new instance of the Server class.
+    * @constructor
+    * @memberof Server
+    * @description This constructor creates a new instance of the Server class.
     */
     constructor() {
         console.log('Starting server...');
@@ -21,6 +26,8 @@ class Server {
 
     /**
      * Loads environment variables from the .env file.
+     * @description This method loads environment variables from the .env file.
+     * @memberof Server
      */
     loadEnvironmentVariables() {
         dotenv.config();
@@ -28,6 +35,8 @@ class Server {
 
     /**
     * Handles GET requests to the API endpoint.
+    * @memberof Server
+    * @description This method handles GET requests to the API endpoint.
     * @param req - The HTTP request object.
     * @param res - The HTTP response object.
     */
@@ -42,6 +51,8 @@ class Server {
 
     /**
     * Starts the server and begins listening for incoming requests.
+    * @memberof Server
+    * @description This method starts the server and begins listening for incoming requests.
     * @param port - The port number on which to listen for incoming requests.
     */
     listen(port: number) {
@@ -53,9 +64,8 @@ class Server {
         
         this.app.post('/account/register/corporate', AccountService.createCorporate);
         this.app.post('/account/register/personal', AccountService.createPersonal);
-
-        // this.app.post('/account/login', AccountHandler.login);
-        // this.app.post('/account/logout', AccountHandler.logout);
+        this.app.post('/account/login', AccountService.login);
+        this.app.post('/account/logout', AccountService.logout);
         // this.app.post('/account/forgot-password', AccountHandler.forgotPassword);
         // this.app.post('/account/reset-password', AccountHandler.resetPassword);
     }

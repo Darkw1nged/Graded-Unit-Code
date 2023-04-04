@@ -3,14 +3,13 @@
         "target": "es6",
         "module": "commonjs",
         "lib": ["es6"],
-        "skipLibCheck": true,
         "outDir": "./dist",
         "strict": true,
         "esModuleInterop": true,
-        "jsx": "react",
+        "jsx": "react"
     },
     "typedocOptions": {
-        "entryPoints": ["./backend/server.ts"],
+        "entryPoints": ["./server.ts"],
         "out": "docs"
     }
 }
