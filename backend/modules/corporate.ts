@@ -1,4 +1,5 @@
-import pool from '../database';
+import { getConnection } from '../database';
+import { PoolConnection, RowDataPacket, OkPacket } from 'mysql2/promise';
 import Address from './address';
 
 /**
@@ -101,7 +102,7 @@ export default class Corporate {
         address?: Address
     ): Promise<void> {
         // Get a connection from the pool.
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database.
         try {
@@ -111,14 +112,23 @@ export default class Corporate {
 
             // If an address was provided, we need to check if it already exists in the database.
             if (address) {
-                addressID = await connection.query(
+                const [rows] = await connection.query<RowDataPacket[]>(
                     'SELECT id FROM addresses WHERE addressLineOne = ? AND `postcode` = ?',
                     [address.addressLineOne, address.postcode]
                 );
     
                 // If an address was not found, we need to create a new one.
-                if (addressID.length === 0) {
-                    // TODO - create a new address.
+                if (rows.length === 0) {
+                    const { addressLineOne, addressLineTwo, city, country, postcode } = address;
+                
+                    const result = await connection.query<OkPacket>(
+                        'INSERT INTO addresses (addressLineOne, addressLineTwo, city, country, postcode) VALUES (?, ?, ?, ?, ?)',
+                        [addressLineOne, addressLineTwo, city, country, postcode]
+                    );
+                
+                    addressID = result[0].insertId;
+                } else {
+                    addressID = rows[0].id;
                 }
             }
 
@@ -141,25 +151,25 @@ export default class Corporate {
      */
     static async findByEmail(email: string): Promise<Corporate | null> {
         // Get a connection from the pool.
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database.
         try {
             // Query the database for the corporate.
-            const corporate = await connection.query(
+            const [rows] = await connection.query<RowDataPacket[]>(
                 'SELECT * FROM `corporate` WHERE `email` = ?',
                 [email]
             );
 
             // If a corporate was found, we need to return it.
-            if (corporate.length > 0) {
+            if (rows.length > 0) {
                 return new Corporate(
-                    corporate[0].name,
-                    corporate[0].email,
-                    corporate[0].password,
-                    corporate[0].roleID,
-                    corporate[0].telephone,
-                    corporate[0].addressID
+                    rows[0].name,
+                    rows[0].email,
+                    rows[0].password,
+                    rows[0].roleID,
+                    rows[0].telephone,
+                    rows[0].addressID
                 );
             }
 

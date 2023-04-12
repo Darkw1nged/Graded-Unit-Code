@@ -19,7 +19,7 @@ import Logout from "../pages/account/Logout";
 import ForgotPassword from "../pages/account/ForgotPassword";
 import ResetPassword from "../pages/account/ResetPassword";
 
-import BookSpace from "../pages/BookSpace";
+import BookSpace from "../pages/Booking";
 
 // Admin Pages
 import Dashboard from "../pages/admin/Dashboard";

@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import AccountService from './AccountService';
+import BookingService from './BookingService';
 
 /**
  * Represents an Express server that listens for incoming requests.
@@ -68,6 +69,8 @@ class Server {
         this.app.post('/account/reset-password', AccountService.resetPassword);
         this.app.post('/account/login', AccountService.login);
         this.app.post('/account/logout', AccountService.logout);
+
+        this.app.post('/search-booking', BookingService.searchBookings);
     }
 
     private app: express.Application;

@@ -1,5 +1,5 @@
-import pool from '../database';
-import bcrypt from 'bcrypt';
+import { getConnection } from '../database';
+import { PoolConnection, RowDataPacket, OkPacket } from 'mysql2/promise';
 import Address from './address';
 
 /**
@@ -131,7 +131,7 @@ export default class User {
         mobile?: string
     ): Promise<void> {
         // Get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database
         try {
@@ -142,14 +142,23 @@ export default class User {
 
             // If an address was provided, we need to check if it already exists in the database.
             if (address) {
-                addressID = await connection.query(
+                const [rows] = await connection.query<RowDataPacket[]>(
                     'SELECT id FROM addresses WHERE addressLineOne = ? AND `postcode` = ?',
                     [address.addressLineOne, address.postcode]
                 );
     
                 // If an address was not found, we need to create a new one.
-                if (addressID.length === 0) {
-                    // TODO - create a new address.
+                if (rows.length === 0) {
+                    const { addressLineOne, addressLineTwo, city, country, postcode } = address;
+                
+                    const result = await connection.query<OkPacket>(
+                        'INSERT INTO addresses (addressLineOne, addressLineTwo, city, country, postcode) VALUES (?, ?, ?, ?, ?)',
+                        [addressLineOne, addressLineTwo, city, country, postcode]
+                    );
+                
+                    addressID = result[0].insertId;
+                } else {
+                    addressID = rows[0].id;
                 }
             }
 
@@ -172,12 +181,12 @@ export default class User {
      */
     static async findByEmail(email: string): Promise<User | null> {
         // Get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database
         try {
             // Query the database for the user
-            const [rows] = await connection.query(
+            const [rows] = await connection.query<RowDataPacket[]>(
                 'SELECT * FROM users WHERE email = ?',
                 [email]
             );
@@ -201,45 +210,5 @@ export default class User {
             connection.release();
         }
     }
-
-    // ---------------------------------- OLD CODE ----------------------------------
-
-    /**
-     * Gets and compares the users password.
-     * @param email The email of the user.
-     * @param passwordAttempt The password the user has attempted to use.
-     * @returns True if the passwords match, false otherwise.
-     * @throws An error if the password could not be compared.
-     */
-    static async comparePassword(email: string, passwordAttempt: string): Promise<boolean> {
-        const connection = await pool.getConnection();
-        try {
-            const [rows] = await connection.query('SELECT password FROM users WHERE email="' + email + '"');
-            if (rows.length === 0) {
-                return false; // No user found
-            }
-
-            const passwordFound = rows[0].password;
-            const isPasswordCorrect = bcrypt.compareSync(passwordAttempt, passwordFound);
-            return isPasswordCorrect;
-        } finally {
-            connection.release();
-        }
-    }
-
-    /**
-     * Updates a user's password.
-     * @param email The user's email address.
-     * @param password The user's new password.
-     * @throws An error if the password could not be updated.
-     */
-    static async updatePassword(email: string, password: string): Promise<void> {
-        const connection = await pool.getConnection();
-        try {
-            await connection.query('UPDATE users SET password = ? WHERE email = ?', [password, email]);
-        } finally {
-            connection.release();
-        }
-    }
-
+    
 }

@@ -1,4 +1,5 @@
-import pool from '../database';
+import { getConnection } from '../database';
+import { PoolConnection, RowDataPacket } from 'mysql2/promise';
 
 /**
  * Represents a role for a user.
@@ -32,7 +33,7 @@ export default class Role {
      * @throws 500 if the role could not be created.
      */
     static async create(id: number, name: string): Promise<void> {
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         try {
             await connection.query(
@@ -51,12 +52,12 @@ export default class Role {
      * @throws 500 if the role does not exist.
      */
     static async findById(id: number): Promise<Role> {
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
-        const result = await connection.query('SELECT * FROM roles WHERE roleID=' + id);
-        if (result.rowCount === 0) {
+        const [rows] = await connection.query<RowDataPacket[]>('SELECT * FROM roles WHERE roleID=' + id);
+        if (rows.length === 0) {
             throw new Error('500');
         }
-        return new Role(result.rows[0].roleID, result.rows[0].name);
+        return new Role(rows[0].roleID, rows[0].name);
     }
 }

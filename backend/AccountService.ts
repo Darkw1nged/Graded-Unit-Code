@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { hashSync, genSaltSync } from 'bcrypt';
 import { sendEmail } from './email-service';
+import { getConnection } from './database';
+import { PoolConnection, RowDataPacket } from 'mysql2/promise';
 
-import pool from './database';
 import user from './modules/user';
 import corporate from './modules/corporate';
 import sessions from './modules/sessions';
@@ -16,6 +17,61 @@ import sessions from './modules/sessions';
 class AccountService {
 
     /**
+     * This compares the password that the user entered with the password that is stored in the database.
+     * @memberof AccountService
+     * @description This compares the password that the user entered with the password that is stored in the database.
+     * @param email The email of the user or corportate.
+     * @param password The password that the user entered.
+     * @returns True if the password is correct, false if it is not.
+     */
+    static async comparePassword(email: string, password: string): Promise<boolean> {
+        // Check if the user is a corporate or a personal user
+        const corporateUser = await corporate.findByEmail(email);
+        const personalUser = await user.findByEmail(email);
+
+        // Check if there is an account with the given email
+        if (!corporateUser && !personalUser) {
+            return false;
+        }
+
+        // get a connection from the pool
+        const connection = await getConnection() as PoolConnection; 
+
+        // Check if the password is correct
+        let isPasswordCorrect;
+
+        // Try and query the database
+        try {
+            // For corporate users
+            if (corporateUser) {
+                const [rows] = await connection.query<RowDataPacket[]>('SELECT password FROM corporate WHERE email = ?', [email]);
+                
+                // Check if an account with the given email exists
+                if (rows.length === 0) {
+                    return false;
+                }
+
+                // Check if the password is correct
+                isPasswordCorrect = password == rows[0].password;
+            } else if (personalUser) {
+                const [rows] = await connection.query<RowDataPacket[]>('SELECT password FROM personal WHERE email = ?', [email]);
+
+                // Check if an account with the given email exists
+                if (rows.length === 0) {
+                    return false;
+                }
+
+                // Check if the password is correct
+                isPasswordCorrect = password == rows[0].password;
+            }
+        } finally {
+            // release the connection
+            connection.release();
+        }
+        return isPasswordCorrect ? true : false;
+    }
+
+    /**
      * Creates a new corporate account.
      * @memberof AccountService
      * @description Creates a new corporate account.
@@ -27,10 +83,10 @@ class AccountService {
      */
     static async createCorporate(req: Request, res: Response) {
         // get data from request
-        const { buisnessName, email, telephone, password, confirmedPassword } = req.body;
+        const { buisnessName, email, telephone, password, confirmPassword } = req.body;
 
         // check if passwords match
-        if (password !== confirmedPassword) {
+        if (password !== confirmPassword) {
             res.status(409).json({ message: 'Passwords do not match' });
             return;
         }
@@ -80,10 +136,10 @@ class AccountService {
      */
     static async createPersonal(req: Request, res: Response) {
         // get data from request
-        const { forename, surname, email, password, confirmedPassword } = req.body;
+        const { forename, surname, email, password, confirmPassword } = req.body;
 
         // check if passwords match
-        if (password !== confirmedPassword) {
+        if (password !== confirmPassword) {
             res.status(409).json({ message: 'Passwords do not match' });
             return;
         }
@@ -152,9 +208,9 @@ class AccountService {
         // Check if the password is correct
         let isPasswordCorrect;
         if (corporateUser) {
-            isPasswordCorrect = await this.comparePassword(email, password);
+            isPasswordCorrect = await AccountService.comparePassword(email, password);
         } else if (personalUser) {
-            isPasswordCorrect = await this.comparePassword(email, password);
+            isPasswordCorrect = await AccountService.comparePassword(email, password);
         }
 
         if (!isPasswordCorrect) {
@@ -183,61 +239,6 @@ class AccountService {
             console.error(error);
             res.status(500).json({ message: 'Something went wrong' });
         }
-    }
-
-    /**
-     * This compares the password that the user entered with the password that is stored in the database.
-     * @memberof AccountService
-     * @description This compares the password that the user entered with the password that is stored in the database.
-     * @param email The email of the user or corportate.
-     * @param password The password that the user entered.
-     * @returns True if the password is correct, false if it is not.
-     */
-    static async comparePassword(email: string, password: string): Promise<boolean> {
-        // Check if the user is a corporate or a personal user
-        const corporateUser = await corporate.findByEmail(email);
-        const personalUser = await user.findByEmail(email);
-
-        // Check if there is an account with the given email
-        if (!corporateUser && !personalUser) {
-            return false;
-        }
-
-        // get a connection from the pool
-        const connection = await pool.getConnection();
-
-        // Check if the password is correct
-        let isPasswordCorrect;
-
-        // Try and query the database
-        try {
-            // For corporate users
-            if (corporateUser) {
-                const [rows] = await connection.query('SELECT password FROM corporate WHERE email = ?', [email]);
-                
-                // Check if an account with the given email exists
-                if (rows.length === 0) {
-                    return false;
-                }
-
-                // Check if the password is correct
-                isPasswordCorrect = password == rows[0].password;
-            } else if (personalUser) {
-                const [rows] = await connection.query('SELECT password FROM personal WHERE email = ?', [email]);
-
-                // Check if an account with the given email exists
-                if (rows.length === 0) {
-                    return false;
-                }
-
-                // Check if the password is correct
-                isPasswordCorrect = password == rows[0].password;
-            }
-        } finally {
-            // release the connection
-            connection.release();
-        }
-        return isPasswordCorrect ? true : false;
     }
 
     /**
@@ -316,10 +317,10 @@ class AccountService {
      */
     static async resetPassword(req: Request, res: Response) {
         // get data from request
-        const { password, confirmedPassword, token } = req.body;
+        const { password, confirmPassword, token } = req.body;
         
         // check if passwords match
-        if (password !== confirmedPassword) {
+        if (password !== confirmPassword) {
             res.status(409).json({ message: 'Passwords do not match' });
             return;
         }
@@ -351,7 +352,7 @@ class AccountService {
         }
 
         // get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection; 
         
         // Try and query the database
         try {

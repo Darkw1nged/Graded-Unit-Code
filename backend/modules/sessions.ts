@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import pool from '../database';
+import { getConnection } from '../database';
+import { PoolConnection, RowDataPacket, OkPacket } from 'mysql2/promise';
 
 /**
  * A class that handles the sessions of the system.
@@ -31,12 +32,12 @@ export default class Sessions {
      */
     static async verifyToken(token: string) {
         // Get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database
         try {
             // Query the database
-            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=?', [token]);
+            const [rows] = await connection.query<RowDataPacket[]>('SELECT email FROM sessions WHERE id=?', [token]);
 
             // If the token is not found
             if (rows.length === 0) {
@@ -59,7 +60,7 @@ export default class Sessions {
      */
     static async deleteToken(token: string) {
         // Get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database
         try {
@@ -81,12 +82,12 @@ export default class Sessions {
      */
     static async getEmail(token: string): Promise<string | null> {
         // Get a connection from the pool
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
 
         // Try and query the database
         try {
             // Query the database
-            const [rows] = await connection.query('SELECT email FROM sessions WHERE id=?', [token]);
+            const [rows] = await connection.query<RowDataPacket[]>('SELECT email FROM sessions WHERE id=?', [token]);
 
             // If the token is not found
             if (rows.length === 0) {
@@ -109,7 +110,7 @@ export default class Sessions {
      * @param expiresIn The time in seconds until the token expires.
      */
     static async createSession(email: string, token: string, expiresIn: number): Promise<void> {
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
         try {
             await connection.query('INSERT INTO sessions (id, email, createdAt, expiresAt) VALUES (?, ?, ?, ?)', [token, email, new Date(), new Date(Date.now() + expiresIn)]);
         } finally {
@@ -124,9 +125,9 @@ export default class Sessions {
      * @returns True if the session was deleted, false otherwise.
      */
     static async deleteSession(token: string): Promise<boolean> {
-        const connection = await pool.getConnection();
+        const connection = await getConnection() as PoolConnection;
         try {
-            const [rows] = await connection.query('DELETE FROM sessions WHERE id="' + token + '"');
+            const [rows] = await connection.query<OkPacket>('DELETE FROM sessions WHERE id="' + token + '"');
             return rows.affectedRows === 1;
         } finally {
             connection.release();
