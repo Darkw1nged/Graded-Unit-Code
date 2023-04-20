@@ -19,25 +19,37 @@ class BookingService {
     
       // Check if all required parameters are present
       if (!departureTime || !arrivalTime) {
-        res.status(400).json({ message: 'Missing required parameters'  });
+        res.status(400).json({
+          message: 'Missing required parameters',
+          status: 400
+        });
         return;
       }
     
       // Check if departure time is in the past
       if (departureTime < new Date()) {
-        res.status(400).json({ message: 'Departure time must be in the future'  });
+        res.status(400).json({
+          message: 'Departure time must be in the future',
+          status: 400
+      });
         return;
       }
     
       // Check if arrivial time is in the past
       if (arrivalTime < new Date()) {
-        res.status(400).json({ message: 'Arrival time must be in the future'  });
+        res.status(400).json({
+          message: 'Arrival time must be in the future',
+          status: 400
+        });
         return;
       }
     
       // Check if departure time is after arrival time
       if (departureTime > arrivalTime) {
-        res.status(400).json({ message: 'Departure time must be before arrival time'  });
+        res.status(400).json({
+          message: 'Departure time must be before arrival time',
+          status: 400
+        });
         return;
       }
     
@@ -57,13 +69,29 @@ class BookingService {
     
         // Check if there is any available spaces
         if (rows[0].count >= availableSpaces) {
-          res.status(200).json({ message: 'No available spaces' });
+          res.status(200).json({
+            message: 'No available spaces',
+            status: 200,
+            data:
+              {
+                availableSpaces: 0,
+                bookings: []
+              }
+          });
           return;
         }
     
         // If there are available spaces, return the number of spaces available
         const spacesAvailable = availableSpaces - rows[0].count;
-        res.status(200).json({ message: `${spacesAvailable} spaces available` });
+        res.status(200).json({
+          message: `${spacesAvailable} spaces available`,
+          status: 200,
+          data:
+            {
+              availableSpaces: spacesAvailable,
+              bookings: []
+            }
+        });
       } finally {
         connection.release();
       }

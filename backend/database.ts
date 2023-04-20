@@ -89,7 +89,7 @@ const createUsersTable = async () => {
         roleID INT NOT NULL,
         forename VARCHAR(255) NOT NULL,
         lastname VARCHAR(255) NOT NULL,
-        addressID VARCHAR(255),
+        addressID INT,
         telephone VARCHAR(255),
         mobile VARCHAR(255),
         FOREIGN KEY (roleID) REFERENCES roles(roleID), 
@@ -120,7 +120,7 @@ const createCorporateTable = async () => {
         roleID INT NOT NULL,
         name VARCHAR(255) NOT NULL,
         telephone VARCHAR(255) NOT NULL,
-        addressID VARCHAR(255),
+        addressID INT,
         FOREIGN KEY (addressID) REFERENCES addresses(addressID)
       )
     `);
@@ -294,7 +294,7 @@ createPaymentsTable();
 
 console.log('(2/3) Creating default roles...');
 // Create the default roles
-createDefaultRoles();
+// createDefaultRoles();
 
 console.log('(3/3) Creating default users...');
 // Create the default users
