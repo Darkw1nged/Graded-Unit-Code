@@ -87,10 +87,42 @@ class BookingService {
      * @param res The response.
      * @returns The booking's details.
      * @throws 404 if the booking ID is invalid or the booking does not exist.
-     * @throws 500 if the booking could not be retrieved.
      */
     static async getBookingById(req: Request, res: Response) {
-      // TODO: Implement method
+      // get data from request
+      const { bookingID } = req.body;
+
+      // Get a connection from the pool
+      const connection = await getConnection() as PoolConnection; 
+    
+      // Try and get the booking from the bookingID
+      try {    
+        // We need to check if there is any available spaces for the given time period
+        const [rows] = await connection.query<RowDataPacket[]>(
+          'SELECT * FROM bookings WHERE bookingID=?',
+          [bookingID]
+        );
+    
+        // Check if rows is null
+        if (rows[0] == null) {
+          res.status(404).json({
+            message: 'No booking fround',
+            booking: null,
+            status: "failed"
+          })
+          return;
+        }
+
+        // Getting the booking
+        const foundBooking = rows[0]    
+        res.status(200).json({
+          message: 'Booking found',
+          booking: foundBooking,
+          status: "success"
+        });
+      } finally {
+        connection.release();
+      }
     }
 
     /**
@@ -98,11 +130,29 @@ class BookingService {
      * @param user The user.
      * @param corporate The corporatation.
      * @returns An array of bookings.
-     * @throws 404 if the user ID is invalid or the user does not exist.
-     * @throws 500 if the bookings could not be retrieved.
+     * @throws 404 if no bookings was found.
      */
     static async getBookings(user?: User, corporate?: Corporate) {
-      // TODO: Implement method
+      // Get a connection from the pool
+      const connection = await getConnection() as PoolConnection; 
+
+      // Getting the email 
+      const email = user != null ? user.email : Corporate != null ? corporate.email : null;
+      // Check if email is null
+      if (email == null) return [];
+
+      // Try and get the booking from the user or corporate email
+      try {    
+        // We need to check if there is any available spaces for the given time period
+        const [rows] = await connection.query<RowDataPacket[]>(
+          'SELECT * FROM bookings WHERE userEmail=?',
+          [email]
+        );
+
+        return rows;
+      } finally {
+        connection.release();
+      }
     }
 
     /**
@@ -126,8 +176,25 @@ class BookingService {
      * @throws 404 if the booking ID is invalid or the booking does not exist.
      * @throws 500 if the booking could not be cancelled.
      */
-    static async cancelBooking(req: Request, res: Response) {
-      // TODO: Implement method
+    static async cancelBooking(req: Request, res: Response) {      
+      /*
+        Booking cancellations can be made by the customer or by the booking clerk. Bookings can be amended up to 24 hours before the booking without a charge.
+        Bookings can be cancelled up to 48 hours after making the booking without a charge. After that, they will only be refunded 50% of the booking cost. 
+      */
+
+      // Ways i can go about doing this.
+      // Since refunds need to be approved i can add a new database table which will store all refunds.
+      /*
+        RefundID
+        userEmail
+        amount
+        dateRequested
+        approved
+        dateIssued
+      */
+      // 1. Check if the booking was 48 hours after making booking
+      // 2. If it was not then just delete the booking, send them the money back and send conformation email
+      // 3. Else if it was after 48 hours cancel the booking then cancel the booking, send 50% of the money back and send conformation email     
     }
 
 }

@@ -7,7 +7,7 @@ type LayoutProps = {
   isAdmin: boolean;
 };
 
-const Home = () => {
+const Page = () => {
     const isLoggedIn = document.cookie.includes("userToken");
     const { toggleAdmin } = useContext(AppContext);
 
@@ -52,4 +52,4 @@ const Home = () => {
     )
   };
   
-  export default Home;
+  export default Page;
