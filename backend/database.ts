@@ -226,6 +226,7 @@ const createBookingsTable = async () => {
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS bookings (
         bookingID INT AUTO_INCREMENT PRIMARY KEY,
+        userEmail VARCHAR(255) NOT NULL, 
         space_number INT NOT NULL,
         dateBooked DATE NOT NULL,
         bookedFrom DATE NOT NULL,
@@ -247,6 +248,7 @@ const createBookingsTable = async () => {
  * @param {Error} err - Any error encountered while creating the table
  * @param {*} results - Results from creating the table
  * @param {*} fields - Fields used to create the table
+ * @deprecated Using stripe instead
  */
 const createPaymentsTable = async () => {
   const connection = await getConnection() as PoolConnection;
@@ -277,7 +279,7 @@ const createDefaultRoles = async () => {
 };
 
 const createDefaultUsers = async () => {
-  // Create a default user
+  // Create a default users
 }
 
 console.log('--- Database Setup ---');
