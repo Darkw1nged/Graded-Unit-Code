@@ -1,0 +1,185 @@
+.booking-page form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 70%;
+    background-color: #F5F5F5;
+    
+    margin: 30px auto;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.booking-page form .item {
+    width: 50%;
+    padding: 10px;
+}
+
+.booking-page form .item span {
+    color: #327aff;
+    margin-right: 20px;
+    font-size: 1.1rem;
+}
+
+.booking-page form .item input {
+    width: 65%;
+
+    padding: 8px 10px;
+    font-size: 1.1rem;
+
+    background: transparent;
+    border: 1px solid #000000;
+    border-radius: 5px;
+
+    cursor: pointer;
+}  
+
+.booking-page form .item input:disabled {
+    opacity: 0.3;
+    cursor: default   
+}
+
+.booking-page form input[type=submit] {
+    width: 15%;
+    background-color: transparent;
+    color: #327aff;
+    font-size: 1.1rem;
+
+    border: 2px solid #327aff;
+    border-radius: 5px;
+    padding: 8px 10px;
+
+    cursor: pointer;
+    transition: .2s;
+}
+
+.booking-page form input[type=submit]:hover {
+    background-color: #327aff;
+    color: #ffffff;
+}
+
+
+.booking-page .response {
+    width: 70%;
+    margin: 70px auto;
+    padding: 10px;
+    text-align: center;
+}
+
+.booking-page .response .error {
+    width: 40%;
+    background-color: red;
+    color: #ffffff;
+    
+    margin: 0 auto;
+    padding: 5px;
+    border-radius: 5px;
+
+    font-size: 1.1rem;
+    display: none;
+}
+
+.booking-page .response .success {
+    width: 40%;
+    background-color: #F5F5F5;
+    
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 5px;
+
+    font-size: 1.1rem;
+    display: none;
+}
+
+.booking-page .response .success h1 {
+    font-family: sans-serif;
+    font-size: 2rem;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+    font-variant: small-caps;
+}
+
+.booking-page .response .success hr {
+    width: 65%;
+    height: 2px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.1);
+    border: solid 1.5px rgba(0, 0, 0, 0.0);
+    border-radius: 3px;
+    transition: .4s;
+}
+
+.booking-page .response .success ul {
+    list-style: none;
+    margin: 20px 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.booking-page .response .success ul li {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 80%;
+    margin: 4px 0;
+}
+
+.booking-page .response .success ul li span {
+    font-size: 1.1rem;
+    color: rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.booking-page .response .success h2 {
+    font-size: 1.8rem;
+    color: rgba(0, 0, 0, 0.3);
+    user-select: none;
+    margin-bottom: .5rem;
+}
+
+.booking-page .response .success .payments {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    
+    width: 50%;
+    margin: 5px auto;
+}
+
+.booking-page .response .success .payments li {
+    margin: 10px 10px 20px 10px;
+}
+
+.booking-page .response .success a {
+    text-decoration: none;
+    color: #327aff;
+    font-size: 1.1rem;
+
+    border: 2px solid #327aff;
+    border-radius: 5px;
+
+    padding: 8px 10px;
+    margin: 10px 0;
+
+    cursor: pointer;
+    transition: .2s;
+}
+
+.booking-page .response .success a:hover {
+    background-color: #327aff;
+    color: #ffffff;
+}
+
+.booking-page .response .error.active {
+    display: block;
+}
+
+.booking-page .response .success.active {
+    display: block;
+}

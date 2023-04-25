@@ -1,6 +1,7 @@
 import * as mysql from 'mysql2/promise';
 import { PoolConnection } from 'mysql2/promise';
 import Role from './modules/role';
+import config from './config';
 
 /**
  * Create a pool of MySQL connections
@@ -9,11 +10,11 @@ import Role from './modules/role';
  * @see {@link https://www.npmjs.com/package/mysql2#using-connection-pools}
  */
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'college',
-  password: '99Bootboy!',
-  port: 3306,
+  host: config.database.host,
+  user: config.database.user,
+  database: config.database.database,
+  password: config.database.password,
+  port: config.database.port,
 });
 
 export const getConnection = () => {
@@ -89,7 +90,7 @@ const createUsersTable = async () => {
         roleID INT NOT NULL,
         forename VARCHAR(255) NOT NULL,
         lastname VARCHAR(255) NOT NULL,
-        addressID VARCHAR(255),
+        addressID INT,
         telephone VARCHAR(255),
         mobile VARCHAR(255),
         FOREIGN KEY (roleID) REFERENCES roles(roleID), 
@@ -120,7 +121,7 @@ const createCorporateTable = async () => {
         roleID INT NOT NULL,
         name VARCHAR(255) NOT NULL,
         telephone VARCHAR(255) NOT NULL,
-        addressID VARCHAR(255),
+        addressID INT,
         FOREIGN KEY (addressID) REFERENCES addresses(addressID)
       )
     `);
@@ -296,7 +297,7 @@ createPaymentsTable();
 
 console.log('(2/3) Creating default roles...');
 // Create the default roles
-createDefaultRoles();
+// createDefaultRoles();
 
 console.log('(3/3) Creating default users...');
 // Create the default users

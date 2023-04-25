@@ -164,7 +164,7 @@ export default class User {
 
             // Now we can create the user.
             await connection.query(
-                'INSERT INTO users (email, password, roleID, forename, lastname, addressID, telephone, mobile) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                'INSERT INTO users (email, password, roleID, forename, lastname, addressID, telephone, mobile) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 [email, password, roleID, forename, lastname, addressID, telephone, mobile]
             );
         } finally {

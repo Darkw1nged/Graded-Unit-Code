@@ -33,7 +33,8 @@ const Page = () => {
         })
         .then(res => res.json())
         .then(response => {
-            console.log(response);
+            document.cookie = `access_token=${response.access_token}; HttpOnly`;
+            window.location.href = '/';
         })
         .catch(err => {
             console.log('There was a problem with the fetch operation:', err);

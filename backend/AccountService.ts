@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
 import { hashSync, genSaltSync } from 'bcrypt';
+import { sign } from 'jsonwebtoken';
 import { sendEmail } from './email-service';
 import { getConnection } from './database';
 import { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { randomUUID } from 'crypto';
 
+import config from './config';
 import user from './modules/user';
 import corporate from './modules/corporate';
 import sessions from './modules/sessions';
@@ -73,50 +76,47 @@ class AccountService {
 
     /**
      * Creates a new corporate account.
+     *
      * @memberof AccountService
-     * @description Creates a new corporate account.
-     * @param req The request.
-     * @param res The response.
-     * @returns The corporate's details.
-     * @throws 409 if the email already exists.
-     * @throws 500 if the corporate could not be created.
+     * @param {Request} req The request.
+     * @param {Response} res The response.
+     * @returns {void}
+     * @throws {Error} 409 if the email already exists.
+     * @throws {Error} 500 if the corporate could not be created.
      */
-    static async createCorporate(req: Request, res: Response) {
-        // get data from request
-        const { buisnessName, email, telephone, password, confirmPassword } = req.body;
-
-        // check if passwords match
-        if (password !== confirmPassword) {
-            res.status(409).json({ message: 'Passwords do not match' });
-            return;
-        }
-
-        // hash password
-        const salt = genSaltSync(10);
-        const hashedPassword = hashSync(password, salt);
-        // role is always 2 (corporate)
-        const roleID = 2;
-
-        // check if email already exists
-        const existingCorporate = await corporate.findByEmail(email);
-        if (existingCorporate) {
-            res.status(409).json({ message: 'An account with that email already exists' });
-            return;
-        }
-
-        // call create method
+    static async createCorporate(req: Request, res: Response): Promise<void> {
         try {
+            // get data from request
+            const { buisnessName, email, telephone, password, confirmPassword } = req.body;
+
+            // check if passwords match
+            if (password !== confirmPassword) {
+                res.status(409).json({ message: 'Passwords do not match' });
+                return;
+            }
+
+            // hash password
+            const salt = genSaltSync(10);
+            const hashedPassword = hashSync(password, salt);
+            const roleID = 2; // role is always 2 (corporate)
+
+            // check if email already exists
+            const existingCorporate = await corporate.findByEmail(email);
+            if (existingCorporate) {
+                res.status(409).json({ message: 'An account with that email already exists' });
+                return;
+            }
+
+            // call create method to create corporate account
             await corporate.createCorporate(buisnessName, email, hashedPassword, roleID, telephone);
-            
+
+            // generate JWT token for the corporate account
+            const token = sign({ id: randomUUID }, config.jwtSecret, { expiresIn: '1h' });
+
+            // send response with the created corporate's details and JWT token
             res.status(201).json({
-                message: 'Ccorporate account created successfully',
-                data: {
-                    buisnessName,
-                    email,
-                    telephone,
-                    password: hashedPassword,
-                    roleID
-                }
+                message: 'Corporate account created successfully',
+                access_token: token
             });
         } catch (error) {
             console.error(error);
@@ -135,50 +135,92 @@ class AccountService {
      * @throws 500 if the personal could not be created.
      */
     static async createPersonal(req: Request, res: Response) {
-        // get data from request
-        const { forename, surname, email, password, confirmPassword } = req.body;
-
-        // check if passwords match
-        if (password !== confirmPassword) {
-            res.status(409).json({ message: 'Passwords do not match' });
-            return;
-        }
-
-        // hash password
-        const salt = genSaltSync(10);
-        const hashedPassword = hashSync(password, salt);
-        // role is always 1 (personal)
-        const roleID = 1;
-
-        // check if email already exists
-        const existingUser = await user.findByEmail(email);
-        if (existingUser) {
-            res.status(409).json({ message: 'An account with that email already exists' });
-            return;
-        }
-
-        // call create method
         try {
+            // get data from request
+            const { forename, surname, email, password, confirmPassword } = req.body;
+
+            // check if passwords match
+            if (password !== confirmPassword) {
+                res.status(409).json({ message: 'Passwords do not match' });
+                return;
+            }
+
+            // hash password
+            const salt = genSaltSync(10);
+            const hashedPassword = hashSync(password, salt);
+            const roleID = 1; // role is always 1 (personal)
+
+            // check if email already exists
+            const existingPersonal = await user.findByEmail(email);
+            if (existingPersonal) {
+                res.status(409).json({ message: 'An account with that email already exists' });
+                return;
+            }
+
+            // call create method to create personal account
             await user.createPersonal(forename, surname, email, hashedPassword, roleID);
 
-            // send email
-            await sendEmail(email, 'Account created', 'You have successfully created a corporate account.');
+            // generate JWT token for the personal account
+            const token = sign({ id: randomUUID }, config.jwtSecret, { expiresIn: '1h' });
 
+            // send response with the created personal's details and JWT token
             res.status(201).json({
                 message: 'Personal account created successfully',
-                data: {
-                    forename,
-                    surname,
-                    email,
-                    password: hashedPassword,
-                    roleID
-                }
+                access_token: token
             });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Something went wrong' });
         }
     }
+
+    /**
+     * Creates a new personal account via external api.
+     * @memberof AccountService
+     * @description Creates a new personal account.
+     * @param req The request.
+     * @param res The response.
+     * @returns The personal's details.
+     * @throws 409 if the email already exists.
+     * @throws 500 if the personal could not be created.
+     */
+    // static async createSocialAccount(req: Request, res: Response) {
+    //     try {
+    //         // get data from request
+    //         const { forename, surname, email, provider } = req.body;
+
+    //         console.log(provider);
+
+    //         // check if user with the same email already exists
+    //         const existingPersonal = await user.findByEmail(email);
+    //         if (existingPersonal) {
+    //             res.status(409).json({ message: 'An account with that email already exists' });
+    //             return;
+    //         }
+
+    //         // call external api to create social account
+    //         await user.createPersonal(forename, surname, email, '', 1);
+
+    //         // generate JWT token for the personal account
+    //         const token = sign({ id: randomUUID }, config.jwtSecret, { expiresIn: '1h' });
+
+    //         // create a token
+    //         const resetToken = sessions.generateToken(email, 60 * 60);
+    //         // create a link
+    //         const link = `/reset-password?token=${resetToken}`;
+
+    //         // send response with the created personal's details and JWT token
+    //         res.status(201).json({
+    //             message: 'Personal account created successfully',
+    //             access_token: token,
+    //             redirectUrl: link
+    //         });
+    //     } catch (error) {
+    //         console.error(error);
+    //         res.status(500).json({ message: 'Something went wrong' });
+    //     }
+    // }
+
 
     /**
      * Logs a user in (corporate included).
