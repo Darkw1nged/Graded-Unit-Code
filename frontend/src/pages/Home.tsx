@@ -8,7 +8,7 @@ type LayoutProps = {
 };
 
 const Page = () => {
-    const isLoggedIn = document.cookie.includes("userToken");
+    const isLoggedIn = document.cookie.includes("access_token");
     const { toggleAdmin } = useContext(AppContext);
 
     return (

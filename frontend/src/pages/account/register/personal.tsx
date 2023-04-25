@@ -35,9 +35,22 @@ const Page = () => {
         })
         .then(res => res.json())
         .then(response => {
-            console.log(response)
+            if (response.status === 'error') {
+                const errorPopup = document.querySelector('.error') as HTMLDivElement;
+                errorPopup.innerHTML = response.message;
+                errorPopup.classList.add('active');
 
-            document.cookie = `access_token=${response.access_token}; HttpOnly`;
+                document.querySelector('.success')?.classList.remove('active');
+                return;
+            } else {
+                const successPopup = document.querySelector('.success') as HTMLDivElement;
+                successPopup.innerHTML = response.message;
+                successPopup.classList.add('active');
+
+                document.querySelector('.error')?.classList.remove('active');
+            }
+
+            document.cookie = `access_token=${response.access_token}; path=/`;
             window.location.href = '/';
         })
         .catch(err => {
@@ -77,6 +90,15 @@ const Page = () => {
                 <Link to="/">Home</Link>
                 <Link to="/book-space">Book</Link>
                 <Link to="/contact">Contact</Link>
+            </div>
+
+            <div className="popup">
+                <div className="error">
+                    <p>s</p>
+                </div>
+                <div className="success">
+                    <p></p>
+                </div>
             </div>
             
             <div className="container">

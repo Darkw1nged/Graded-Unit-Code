@@ -17,6 +17,44 @@
     right: 0;
 }
 
+.form-body .popup {
+    position: fixed;
+    width: 50%;
+    border: 3px solid transparent;
+    top: 12%;
+    left: 5%;
+}
+
+.form-body .popup .error {
+    background-color: rgba(220, 20, 60, 0.5);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 3px solid rgba(220, 20, 60, 0.4);
+    font-size: 1.1rem;
+    text-align: center;
+    display: none;
+}
+
+.form-body .popup .error.active {
+    display: block;
+}
+
+.form-body .popup .success {
+    background-color: rgba(147, 197, 114, 0.5);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 3px solid rgba(147, 197, 114, 0.4);
+    font-size: 1.1rem;
+    text-align: center;
+    display: none;
+}
+
+.form-body .popup .success.active {
+    display: block;
+}
+
 .navigation {
     position: absolute;
     width: 1200px;

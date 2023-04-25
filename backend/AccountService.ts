@@ -93,7 +93,10 @@ class AccountService {
 
             // check if passwords match
             if (password !== confirmPassword) {
-                res.status(409).json({ message: 'Passwords do not match' });
+                res.status(409).json({
+                    message: 'Passwords do not match',
+                    status: 'error'
+                });
                 return;
             }
 
@@ -105,7 +108,10 @@ class AccountService {
             // check if email already exists
             const existingCorporate = await corporate.findByEmail(email);
             if (existingCorporate) {
-                res.status(409).json({ message: 'An account with that email already exists' });
+                res.status(409).json({
+                    message: 'An account with that email already exists',
+                    status: 'error'
+                });
                 return;
             }
 
@@ -121,11 +127,15 @@ class AccountService {
             // send response with the created corporate's details and JWT token
             res.status(201).json({
                 message: 'Corporate account created successfully',
-                access_token: token
+                access_token: token,
+                status: 'success'
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Something went wrong' });
+            res.status(500).json({
+                message: 'Something went wrong',
+                status: 'error'
+            });
         }
     }
 
@@ -146,7 +156,10 @@ class AccountService {
 
             // check if passwords match
             if (password !== confirmPassword) {
-                res.status(409).json({ message: 'Passwords do not match' });
+                res.status(409).json({
+                    message: 'Passwords do not match',
+                    status: 'error'
+                });
                 return;
             }
 
@@ -158,7 +171,10 @@ class AccountService {
             // check if email already exists
             const existingPersonal = await user.findByEmail(email);
             if (existingPersonal) {
-                res.status(409).json({ message: 'An account with that email already exists' });
+                res.status(409).json({
+                    message: 'An account with that email already exists',
+                    status: 'error'
+                });
                 return;
             }
 
@@ -171,11 +187,15 @@ class AccountService {
             // send response with the created personal's details and JWT token
             res.status(201).json({
                 message: 'Personal account created successfully',
-                access_token: token
+                access_token: token,
+                status: 'success'
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Something went wrong' });
+            res.status(500).json({
+                message: 'Something went wrong',
+                status: 'error'
+            });
         }
     }
 
@@ -242,15 +262,16 @@ class AccountService {
         // get data from request
         const { email, password, rememberMe } = req.body;
 
-        console.log(email, password, rememberMe);
-
         // Check if the user is a corporate or a personal user
         const corporateUser = await corporate.findByEmail(email);
         const personalUser = await user.findByEmail(email);
 
         // Check if there is an account with the given email
         if (!corporateUser && !personalUser) {
-            res.status(404).json({ message: 'Email does not exist' });
+            res.status(404).json({
+                message: 'Email does not exist',
+                status: 'error'
+            });
             return;
         }
 
@@ -258,8 +279,10 @@ class AccountService {
         let isPasswordCorrect = await AccountService.comparePassword(email, password);
 
         if (!isPasswordCorrect) {
-            console.log('Password is incorrect')
-            res.status(401).json({ message: 'Password is incorrect' });
+            res.status(401).json({
+                message: 'Password is incorrect',
+                status: 'error'
+            });
             return;
         }
 
@@ -274,15 +297,17 @@ class AccountService {
         // Send the token
         try {
             res.status(200).json({
-                messaage: 'Login successful',
-                data: {
-                    access_token: secret,
-                    expiresIn
-                }
+                message: 'Login successful',
+                access_token: secret,
+                expiresIn,
+                status: 'success'
             });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Something went wrong' });
+            res.status(500).json({
+                message: 'Something went wrong',
+                status: 'error'
+            });
         }
     }
 
@@ -326,7 +351,10 @@ class AccountService {
 
         // Check if there is an account with the given email
         if (!corporateUser && !personalUser) {
-            res.status(404).json({ message: 'Email does not exist' });
+            res.status(404).json({
+                message: 'Email does not exist',
+                status: 'error'
+            });
             return;
         }
 
@@ -338,8 +366,16 @@ class AccountService {
         // send email
         try {
             await sendEmail(email, 'Password Reset', `Click the link to reset your password: ${await link}`);
+        
+            res.status(200).json({
+                message: 'A password reset email has been sent',
+                status: 'success'
+            });
         } catch (error) {
-            res.status(500).json({ message: 'Something went wrong' });
+            res.status(500).json({
+                message: 'Something went wrong',
+                status: 'error'
+            });
             return;
         }
 
@@ -366,7 +402,10 @@ class AccountService {
         
         // check if passwords match
         if (password !== confirmPassword) {
-            res.status(409).json({ message: 'Passwords do not match' });
+            res.status(409).json({
+                message: 'Passwords do not match',
+                status: 'error'
+            });
             return;
         }
 
@@ -375,14 +414,20 @@ class AccountService {
 
         // check if token is valid
         if (!isTokenValid) {
-            res.status(401).json({ message: 'Token is invalid' });
+            res.status(401).json({
+                message: 'Token is invalid',
+                status: 'error'
+            });
             return;
         }
 
         // get email from token
         const email = await sessions.getEmail(token);
         if (!email) {
-            res.status(401).json({ message: 'Token is invalid' });
+            res.status(401).json({
+                message: 'Token is invalid',
+                status: 'error'
+            });
             return;
         }
 
@@ -392,8 +437,10 @@ class AccountService {
 
         // Check if there is an account with the given email
         if (!corporateUser && !personalUser) {
-            res.status(404).json({ message: 'Email does not exist' });
-            console.log('Email does not exist');
+            res.status(404).json({
+                message: 'Email does not exist',
+                status: 'error'
+            });
             return;
         }
 
@@ -421,7 +468,8 @@ class AccountService {
         }
 
         res.status(200).json({
-            message: 'Password reset successful'
+            message: 'Password reset successful',
+            status: 'success'
         });
     }
 

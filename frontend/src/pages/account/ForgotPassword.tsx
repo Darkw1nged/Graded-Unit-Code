@@ -29,6 +29,20 @@ const Page = () => {
         })
         .then(response => response.json())
         .then(response => {
+            if (response.status === 'error') {
+                const errorPopup = document.querySelector('.error') as HTMLDivElement;
+                errorPopup.innerHTML = response.message;
+                errorPopup.classList.add('active');
+
+                document.querySelector('.success')?.classList.remove('active');
+                return;
+            } else {
+                const successPopup = document.querySelector('.success') as HTMLDivElement;
+                successPopup.innerHTML = response.message;
+                successPopup.classList.add('active');
+
+                document.querySelector('.error')?.classList.remove('active');
+            }
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
@@ -43,6 +57,15 @@ const Page = () => {
                 <Link to="/contact">Contact</Link>
             </div>
             
+            <div className="popup">
+                <div className="error">
+                    <p>s</p>
+                </div>
+                <div className="success">
+                    <p></p>
+                </div>
+            </div>
+
             <div className="container">
                 <div className="form">
                     <h1>Forgot Password</h1>

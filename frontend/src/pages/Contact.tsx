@@ -59,13 +59,13 @@ const Page = () => {
   return (
     <div className="contact-container">
       <div className="popup">
-          <div className="error">
-            <p></p>
-          </div>
-          <div className="success">
-            <p></p>
-          </div>
+        <div className="error">
+          <p></p>
         </div>
+        <div className="success">
+          <p></p>
+        </div>
+      </div>
 
       <form onSubmit={handleFormSubmit}>
         <h1>Contact Us</h1>
