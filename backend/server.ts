@@ -65,6 +65,7 @@ class Server {
         
         this.app.post('/account/register/corporate', AccountService.createCorporate);
         this.app.post('/account/register/personal', AccountService.createPersonal);
+        this.app.post('/account/register/social', AccountService.createSocialAccount);
         this.app.post('/account/forgot-password', AccountService.forgotPassword);
         this.app.post('/account/reset-password', AccountService.resetPassword);
         this.app.post('/account/login', AccountService.login);

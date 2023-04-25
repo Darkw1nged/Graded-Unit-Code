@@ -1,6 +1,7 @@
 import * as mysql from 'mysql2/promise';
 import { PoolConnection } from 'mysql2/promise';
 import Role from './modules/role';
+import config from './config';
 
 /**
  * Create a pool of MySQL connections
@@ -9,11 +10,11 @@ import Role from './modules/role';
  * @see {@link https://www.npmjs.com/package/mysql2#using-connection-pools}
  */
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'college',
-  password: '99Bootboy!',
-  port: 3306,
+  host: config.database.host,
+  user: config.database.user,
+  database: config.database.database,
+  password: config.database.password,
+  port: config.database.port,
 });
 
 export const getConnection = () => {
