@@ -10,20 +10,19 @@ type LayoutProps = {
 };
 
 const Layout = ({ isAdmin }: LayoutProps) => {
+    const isLoggedIn = document.cookie.includes("userToken");
     const { toggleAdmin } = useContext(AppContext);
 
-    // Get the current location
     const location = useLocation();
 
-    // If the current location is one of the following, don't show the navigation
+    // We dont want to show the navigation on the following pages
     if (
-        location.pathname === "/account/login" ||
         location.pathname === "/account/register" ||
         location.pathname === "/account/register/personal" ||
         location.pathname === "/account/register/corporate" ||
+        location.pathname === "/account/login" ||
         location.pathname === "/account/forgot-password" ||
         location.pathname === "/account/reset-password" ||
-        location.pathname === "/book-space" ||
         location.pathname === "/"
     ) return <Outlet />;
 
@@ -122,27 +121,34 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                     </Link></li>
                 </ul>
             </nav>
-        ) : (
-            <nav>
+        ) : isLoggedIn ? (
+            <nav className="default-navigation">
+                <h1>ParkEasy</h1>
                 <ul>
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="book-space">Book</Link></li>
+                    <li><Link to="contact">Contact</Link></li>
                     <li>
-                        <Link to="/">Home</Link>
+                        <img src="/Profile_avatar_placeholder.png" alt="profile" />
+                        <div className="account-links">
+                            <ul>
+                                <li><Link to="/admin/dashboard" onClick={toggleAdmin}>Dashboard</Link></li>
+                                <li><Link to="">Profile</Link></li>
+                                <li><Link to="">Edit Profile</Link></li>
+                                <li><Link to="/account/Logout">Logout</Link></li>
+                            </ul>
+                        </div>
                     </li>
-                    <li>
-                        <Link to="/contact">Contact</Link>
-                    </li>
-                    <li>
-                        <Link to="/register">Register</Link>
-                    </li>
-                    <li>
-                        <Link to="/login">Login</Link>
-                    </li>
-                    <li>
-                        <Link to="/book-space">Book Space</Link>
-                    </li>              
-                    <li>
-                        <Link to="/admin/dashboard" onClick={toggleAdmin}>Dashboard</Link>
-                    </li>
+                </ul>
+            </nav>
+        ) : (
+            <nav className="default-navigation">
+                <h1>ParkEasy</h1>
+                <ul>
+                    <li><Link to="/">Home</Link></li>
+                    <li><Link to="book-space">Book</Link></li>
+                    <li><Link to="contact">Contact</Link></li>
+                    <li><Link to="/account/login" className="important">Login</Link></li>
                 </ul>
             </nav>
         )}
