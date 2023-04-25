@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import redirectIfLoggedIn from '../../../components/redirects';
-import GoogleLogin from 'react-google-login';
-import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
+// import GoogleLogin from 'react-google-login';
+// import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
 
 const Page = () => {
     redirectIfLoggedIn();
@@ -35,6 +35,8 @@ const Page = () => {
         })
         .then(res => res.json())
         .then(response => {
+            console.log(response)
+
             document.cookie = `access_token=${response.access_token}; HttpOnly`;
             window.location.href = '/';
         })

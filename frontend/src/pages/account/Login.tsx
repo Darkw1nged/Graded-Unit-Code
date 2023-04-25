@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import redirectIfLoggedIn from '../../components/redirects';
-import GoogleLogin from 'react-google-login';
-import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
+// import GoogleLogin from 'react-google-login';
+// import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
 
 const Page = () => {
     redirectIfLoggedIn();

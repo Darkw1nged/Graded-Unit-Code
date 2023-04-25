@@ -37,7 +37,7 @@ export default class Sessions {
         // Try and query the database
         try {
             // Query the database
-            const [rows] = await connection.query<RowDataPacket[]>('SELECT email FROM sessions WHERE id=?', [token]);
+            const [rows] = await connection.query<RowDataPacket[]>("SELECT email FROM sessions WHERE id=?", [token]);
 
             // If the token is not found
             if (rows.length === 0) {

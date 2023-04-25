@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { hashSync, genSaltSync } from 'bcrypt';
+import { hashSync, genSaltSync, compareSync } from 'bcrypt';
 import { sign } from 'jsonwebtoken';
 import { sendEmail } from './email-service';
 import { getConnection } from './database';
@@ -40,8 +40,8 @@ class AccountService {
         // get a connection from the pool
         const connection = await getConnection() as PoolConnection; 
 
-        // Check if the password is correct
-        let isPasswordCorrect;
+        // Get the password from the database
+        let foundPassword;
 
         // Try and query the database
         try {
@@ -55,9 +55,9 @@ class AccountService {
                 }
 
                 // Check if the password is correct
-                isPasswordCorrect = password == rows[0].password;
+                foundPassword = rows[0].password;
             } else if (personalUser) {
-                const [rows] = await connection.query<RowDataPacket[]>('SELECT password FROM personal WHERE email = ?', [email]);
+                const [rows] = await connection.query<RowDataPacket[]>('SELECT password FROM users WHERE email = ?', [email]);
 
                 // Check if an account with the given email exists
                 if (rows.length === 0) {
@@ -65,13 +65,15 @@ class AccountService {
                 }
 
                 // Check if the password is correct
-                isPasswordCorrect = password == rows[0].password;
+                foundPassword = rows[0].password;
             }
         } finally {
             // release the connection
             connection.release();
         }
-        return isPasswordCorrect ? true : false;
+
+        // Compare the password that the user entered with the password that is stored in the database
+        return compareSync(password, foundPassword);
     }
 
     /**
@@ -112,6 +114,9 @@ class AccountService {
 
             // generate JWT token for the corporate account
             const token = sign({ id: randomUUID }, config.jwtSecret, { expiresIn: '1h' });
+
+            // Send email to the corporate
+            sendEmail(email, 'Welcome to ParkEasy', 'Thank you for registering with us!');
 
             // send response with the created corporate's details and JWT token
             res.status(201).json({
@@ -237,6 +242,8 @@ class AccountService {
         // get data from request
         const { email, password, rememberMe } = req.body;
 
+        console.log(email, password, rememberMe);
+
         // Check if the user is a corporate or a personal user
         const corporateUser = await corporate.findByEmail(email);
         const personalUser = await user.findByEmail(email);
@@ -248,14 +255,10 @@ class AccountService {
         }
 
         // Check if the password is correct
-        let isPasswordCorrect;
-        if (corporateUser) {
-            isPasswordCorrect = await AccountService.comparePassword(email, password);
-        } else if (personalUser) {
-            isPasswordCorrect = await AccountService.comparePassword(email, password);
-        }
+        let isPasswordCorrect = await AccountService.comparePassword(email, password);
 
         if (!isPasswordCorrect) {
+            console.log('Password is incorrect')
             res.status(401).json({ message: 'Password is incorrect' });
             return;
         }
@@ -273,7 +276,7 @@ class AccountService {
             res.status(200).json({
                 messaage: 'Login successful',
                 data: {
-                    token: secret,
+                    access_token: secret,
                     expiresIn
                 }
             });
@@ -328,13 +331,13 @@ class AccountService {
         }
 
         // create a token
-        const token = sessions.generateToken(email, 60 * 60);
+        const token = await sessions.generateToken(email, 60 * 60);
         // create a link
-        const link = `http://localhost:3000/reset-password?token=${token}`;
+        const link = `http://localhost:3000/account/reset-password?token=${token}`;
 
         // send email
         try {
-            await sendEmail(email, 'Password Reset', `Click the link to reset your password: ${link}`);
+            await sendEmail(email, 'Password Reset', `Click the link to reset your password: ${await link}`);
         } catch (error) {
             res.status(500).json({ message: 'Something went wrong' });
             return;
@@ -390,23 +393,28 @@ class AccountService {
         // Check if there is an account with the given email
         if (!corporateUser && !personalUser) {
             res.status(404).json({ message: 'Email does not exist' });
+            console.log('Email does not exist');
             return;
         }
 
         // get a connection from the pool
         const connection = await getConnection() as PoolConnection; 
         
+        // hash password
+        const salt = genSaltSync(10);
+        const hashedPassword = hashSync(password, salt);
+
         // Try and query the database
         try {
             // For corporate users
             if (corporateUser) {
-                await connection.query('UPDATE corporate SET password = ? WHERE email = ?', [password, email]);
+                await connection.query('UPDATE corporate SET password = ? WHERE email = ?', [hashedPassword, email]);
             } else if (personalUser) {
-                await connection.query('UPDATE users SET password = ? WHERE email = ?', [password, email]);
+                await connection.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email]);
             }
-        } catch (error) {
-            res.status(500).json({ message: 'Something went wrong' });
-            return;
+
+            // Delete the token
+            await sessions.deleteToken(token);
         } finally {
             // release the connection
             connection.release();
@@ -415,6 +423,36 @@ class AccountService {
         res.status(200).json({
             message: 'Password reset successful'
         });
+    }
+
+    /**
+     * Contacts the support team.
+     * @memberof AccountService
+     * @description Contacts the support team.
+     * @param req The request.
+     * @param res The response.
+     * @throws 500 if the email could not be sent.
+     */
+    static async contact(req: Request, res: Response) {
+        // get data from request
+        const { name, email, message } = req.body;
+
+        // send email
+        try {
+            await sendEmail('atchison2014@gmail.com', 'Support Request', `Name: ${name}\nEmail: ${email}\nMessage: ${message}`);
+            await sendEmail(email, 'Support Request', `Thank you for contacting us. We will get back to you as soon as possible.`);
+
+            res.status(200).json({
+                message: 'Your message has been sent.',
+                status: 'sent'
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Something went wrong',
+                status: 'failed'
+            });
+            return;
+        }
     }
 
 }

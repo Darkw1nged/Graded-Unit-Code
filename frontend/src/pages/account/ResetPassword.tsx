@@ -11,7 +11,7 @@ const Page = () => {
 
     const [formValues, setFormValues] = useState({
         password: '',
-        confirmedPassword: '',
+        confirmPassword: '',
         token: token,
     });
 
@@ -35,7 +35,7 @@ const Page = () => {
         })
         .then(response => response.json())
         .then(response => {
-            console.log(response);
+            window.location.href = '/account/login';
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
@@ -58,7 +58,7 @@ const Page = () => {
 
                     <form onSubmit={handleFormSubmit}>
                         <input type="password" name="password" placeholder="New Password" value={formValues.password} onChange={handleInputChange} required />
-                        <input type="password" name="confirmedPassword" placeholder="Confirm Password" value={formValues.confirmedPassword} onChange={handleInputChange} required />
+                        <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formValues.confirmPassword} onChange={handleInputChange} required />
                         <input type="submit" value="Confirm Reset" />
                     </form>
                 </div>
