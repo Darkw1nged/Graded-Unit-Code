@@ -165,7 +165,7 @@ class BookingService {
       const connection = await getConnection() as PoolConnection; 
 
       // Getting the email 
-      const email = user != null ? user.email : Corporate != null ? corporate.email : null;
+      const email = user != null ? user.email : corporate != null ? corporate.email : null;
       // Check if email is null
       if (email == null) return [];
 
