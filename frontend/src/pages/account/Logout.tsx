@@ -1,9 +1,9 @@
 const Page = () => {
 
     // check if the user is logged in
-    if (!document.cookie.includes("userToken")) {
+    if (!document.cookie.includes("access_token")) {
         // if the user is not logged in, redirect them to the login page
-        window.location.href = "/login";
+        window.location.href = "/account/login";
     }
 
     // end the user session
@@ -21,7 +21,7 @@ const Page = () => {
         console.log('logout response: ', response.message);
 
         // remove the user token from the cookie
-        document.cookie = "userToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         // redirect the user to the login page
         window.location.href = '/account/login';
     })

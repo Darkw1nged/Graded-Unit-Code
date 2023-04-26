@@ -135,7 +135,7 @@ export default class Corporate {
             // Now we can create the corporate.
             await connection.query(
                 'INSERT INTO `corporate` (`email`, `password`, `roleID`, `name`, `telephone`, `addressID`) VALUES (?, ?, ?, ?, ?, ?)',
-                [email, password, roleID, name, telephone, addressID.id]
+                [email, password, roleID, name, telephone, addressID]
             );
         } finally {
             connection.release();
