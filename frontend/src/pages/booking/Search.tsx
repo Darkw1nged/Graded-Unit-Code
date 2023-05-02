@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import '../style/booking.css';
+import '../../style/booking-search.css';
 
 const Page = () => {
     const [formValues, setFormValues] = useState({
@@ -28,7 +28,7 @@ const Page = () => {
         .then(res => res.json())
         .then(response => {
             if (response.status === 200) {
-                if (response.data.availableSpaces === 0) {
+                if (response.availableSpaces === 0) {
                     const error = document.querySelector('.error') as HTMLElement;
                     error.classList.add('active');
 
@@ -59,6 +59,25 @@ const Page = () => {
                 document.querySelector('.success')?.classList.remove('active');
             }
 
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }
+
+    const handleBooking = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        event.preventDefault();
+
+        fetch('http://localhost:5000/start-booking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formValues),
+        })
+        .then(res => res.json())
+        .then(response => {
+            window.location.href = `/booking/create?token=${response.token}`;
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
@@ -116,7 +135,7 @@ const Page = () => {
                         <li>Paypal</li>
                     </ul>
 
-                    <a href="/as">Book Now</a>
+                    <a onClick={handleBooking}>Book Now</a>
                 </div>
             </div>
 

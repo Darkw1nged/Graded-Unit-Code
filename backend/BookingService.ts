@@ -3,6 +3,8 @@ import { getConnection } from './database';
 import { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import User from './modules/user';
 import Corporate from './modules/corporate';
+import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 
 class BookingService {
 
@@ -72,11 +74,8 @@ class BookingService {
           res.status(200).json({
             message: 'No available spaces',
             status: 200,
-            data:
-              {
-                availableSpaces: 0,
-                bookings: []
-              }
+            availableSpaces: 0,
+            bookings: []
           });
           return;
         }
@@ -86,15 +85,26 @@ class BookingService {
         res.status(200).json({
           message: `${spacesAvailable} spaces available`,
           status: 200,
-          data:
-            {
-              availableSpaces: spacesAvailable,
-              bookings: []
-            }
+          availableSpaces: spacesAvailable,
+          bookings: []
         });
       } finally {
         connection.release();
       }
+    }
+
+    /**
+     * Creates a new booking.
+     * @param req The request.
+     * @param res The response.
+     * @returns the bookings token.
+     */
+    static async startBooking(req: Request, res: Response) {
+      res.status(200).json({
+        message: 'Booking started',
+        status: 200,
+        token: jwt.sign(randomUUID(), process.env.JWT_SECRET as string)
+      })
     }
 
     /**

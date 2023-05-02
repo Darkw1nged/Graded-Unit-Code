@@ -10,7 +10,7 @@ type LayoutProps = {
 };
 
 const Layout = ({ isAdmin }: LayoutProps) => {
-    const isLoggedIn = document.cookie.includes("userToken");
+    const isLoggedIn = document.cookie.includes("access_token");
     const { toggleAdmin } = useContext(AppContext);
 
     const location = useLocation();
@@ -126,7 +126,7 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                 <h1>ParkEasy</h1>
                 <ul>
                     <li><Link to="/">Home</Link></li>
-                    <li><Link to="book-space">Book</Link></li>
+                    <li><Link to="booking/search">Book</Link></li>
                     <li><Link to="contact">Contact</Link></li>
                     <li>
                         <img src="/Profile_avatar_placeholder.png" alt="profile" />
@@ -146,7 +146,7 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                 <h1>ParkEasy</h1>
                 <ul>
                     <li><Link to="/">Home</Link></li>
-                    <li><Link to="book-space">Book</Link></li>
+                    <li><Link to="booking/search">Book</Link></li>
                     <li><Link to="contact">Contact</Link></li>
                     <li><Link to="/account/login" className="important">Login</Link></li>
                 </ul>

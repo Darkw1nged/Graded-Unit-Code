@@ -8,7 +8,7 @@
     background-position: bottom;
 }
 
-.container {
+.form-body .container {
     width: 700px;
     height: 100vh;
     background-color: #eeeeee;

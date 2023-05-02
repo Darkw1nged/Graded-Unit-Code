@@ -17,7 +17,7 @@ const Page = () => {
             <nav>
               <ul>
                 <li><Link to="/">Home</Link></li>
-                <li><Link to="book-space">Book</Link></li>
+                <li><Link to="booking/search">Book</Link></li>
                 <li><Link to="contact">Contact</Link></li>
                 <li>
                   <img src="/Profile_avatar_placeholder.png" alt="profile" />
@@ -36,7 +36,7 @@ const Page = () => {
             <nav>
               <ul>
                 <li><Link to="/">Home</Link></li>
-                <li><Link to="book-space">Book</Link></li>
+                <li><Link to="booking/search">Book</Link></li>
                 <li><Link to="contact">Contact</Link></li>
                 <li><Link to="/account/login" className="important">Login</Link></li>
               </ul>
@@ -46,7 +46,7 @@ const Page = () => {
 
         <div className="content">
           <h1>Parkeasy Airport Parking</h1>
-          <Link to="book-space">Book Now</Link>
+          <Link to="booking/search">Book Now</Link>
         </div>
       </div>
     )

@@ -80,53 +80,27 @@ const createAddressesTable = async () => {
  * @param {*} results - Results from creating the table
  * @param {*} fields - Fields used to create the table
  */
-const createUsersTable = async () => {
+const craeteProfilesTable = async () => {
   const connection = await getConnection() as PoolConnection;
   try {
     await connection.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        email VARCHAR(255) NOT NULL PRIMARY KEY,
+      CREATE TABLE profiles (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        forename VARCHAR(255),
+        lastname VARCHAR(255),
+        email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        roleID INT NOT NULL,
-        forename VARCHAR(255) NOT NULL,
-        lastname VARCHAR(255) NOT NULL,
-        addressID INT,
+        role_id INT NOT NULL,
         telephone VARCHAR(255),
-        mobile VARCHAR(255),
-        FOREIGN KEY (roleID) REFERENCES roles(roleID), 
-        FOREIGN KEY (addressID) REFERENCES addresses(addressID) 
-      )
+        address_id INT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (role_id) REFERENCES roles (id),
+        FOREIGN KEY (address_id) REFERENCES addresses (id)
+      );
     `);
   } catch (err) {
     console.log('Error creating users table', err);
-  } finally {
-    connection.release();
-  }
-};
-
-/** 
- * Create the corporate table
- * @description This is the table that will store all of the corporate users of the system.
- * @param {Error} err - Any error encountered while creating the table
- * @param {*} results - Results from creating the table
- * @param {*} fields - Fields used to create the table
- */
-const createCorporateTable = async () => {
-  const connection = await getConnection() as PoolConnection;
-  try {
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS corporate (
-        email VARCHAR(255) NOT NULL PRIMARY KEY,
-        password VARCHAR(255) NOT NULL,
-        roleID INT NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        telephone VARCHAR(255) NOT NULL,
-        addressID INT,
-        FOREIGN KEY (addressID) REFERENCES addresses(addressID)
-      )
-    `);
-  } catch (err) {
-    console.log('Error creating corporate table', err);
   } finally {
     connection.release();
   }
@@ -270,12 +244,12 @@ const createPaymentsTable = async () => {
 };
 
 const createDefaultRoles = async () => {
-  Role.create(1, 'personal');
-  Role.create(2, 'Corporate');
-  Role.create(3, 'Invoices_Clerk');
-  Role.create(4, 'Bookings_Clerk');
-  Role.create(5, 'Manager');
-  Role.create(6, 'Admin');
+  new Role(1, "Personal").save();
+  new Role(2, "Corporate").save();
+  new Role(3, "Invoices_Clerk").save();
+  new Role(4, "Bookings_Clerk").save();
+  new Role(5, "Manager").save();
+  new Role(6, "Admin").save();
 };
 
 const createDefaultUsers = async () => {
@@ -287,8 +261,7 @@ console.log('(1/3) Creating tables...')
 // Call the functions to create the tables
 createRolesTable();
 createAddressesTable();
-createUsersTable();
-createCorporateTable();
+craeteProfilesTable();
 createSessionsTable();
 createVehiclesTable();
 createFlightsTable();

@@ -63,17 +63,19 @@ class Server {
             console.log(`Server listening on port ${port}`);
         });
         
-        this.app.post('/account/register/corporate', AccountService.createCorporate);
-        this.app.post('/account/register/personal', AccountService.createPersonal);
+        this.app.post('/account/register/corporate', AccountService.registerCorporate);
+        this.app.post('/account/register/personal', AccountService.registerUser);
         // this.app.post('/account/register/social', AccountService.createSocialAccount);
         this.app.post('/account/forgot-password', AccountService.forgotPassword);
         this.app.post('/account/reset-password', AccountService.resetPassword);
         this.app.post('/account/login', AccountService.login);
         this.app.post('/account/logout', AccountService.logout);
+        this.app.get('/account/find', AccountService.findAccount);
 
         this.app.post('/contact', AccountService.contact);
 
         this.app.post('/search-booking', BookingService.searchBookings);
+        this.app.post('/start-booking', BookingService.startBooking);
     }
 
     private app: express.Application;

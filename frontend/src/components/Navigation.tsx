@@ -19,7 +19,8 @@ import Logout from "../pages/account/Logout";
 import ForgotPassword from "../pages/account/ForgotPassword";
 import ResetPassword from "../pages/account/ResetPassword";
 
-import BookSpace from "../pages/Booking";
+import SearchBooking from "../pages/booking/Search";
+import CreateBooking from "../pages/booking/Create";
 
 // Admin Pages
 import Dashboard from "../pages/admin/Dashboard";
@@ -47,7 +48,8 @@ function Navigation() {
             <Route path="account/logout" element={<Logout />} />
             <Route path="account/forgot-password" element={<ForgotPassword />} />
             <Route path="account/reset-password" element={<ResetPassword />} />
-            <Route path="book-space" element={<BookSpace />} />
+            <Route path="booking/search" element={<SearchBooking />} />
+            <Route path="booking/create" element={<CreateBooking />} />
             <Route path="admin/dashboard" element={<Dashboard />} />
             <Route path="admin/members" element={<Members />} />
             <Route path="admin/staff" element={<Staff />} />
