@@ -70,7 +70,9 @@ class Server {
         this.app.post('/account/reset-password', AccountService.resetPassword);
         this.app.post('/account/login', AccountService.login);
         this.app.post('/account/logout', AccountService.logout);
-        this.app.get('/account/find', AccountService.findAccount);
+        this.app.post('/account/delete', AccountService.deleteAccount);
+
+        this.app.get('/account/find', AccountService.findUser);
 
         this.app.post('/contact', AccountService.contact);
 

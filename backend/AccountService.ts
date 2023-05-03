@@ -38,7 +38,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', roleID, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (existingCorporate) {
+            if (existingCorporate !== null) {
                 res.status(409).json({
                     message: 'Email already exists',
                 });
@@ -50,21 +50,9 @@ export default class AccountService {
 
             // Try and query the database
             try {
-                // Start a transaction
-                await connection.beginTransaction();
-            
-                // Insert the address into the database
-                const [addressResult] = await connection.query<OkPacket>('INSERT INTO address (addressLine1, addressLine2, city, postcode) VALUES (?, ?, ?, ?)', [req.body.addressLine1, req.body.addressLine2, req.body.city, req.body.postcode]);
-                const addressID = addressResult.insertId;
-
-                // Insert the corporate into the database
-                await connection.query(
-                    'INSERT INTO corporate (buisnessName, email, password, roleID, telephone, addressID) VALUES (?, ?, ?, ?, ?, ?);',
-                    [buisnessName, email, hashedPassword, roleID, telephone, addressID]
-                );
-
-                // Commit the transaction
-                await connection.commit();
+                // Create a new corporate
+                const corporate = await new Corporate(buisnessName, email, hashedPassword, roleID, telephone, undefined);
+                corporate.save();
 
                 // Send email
                 sendEmail(email, 'Welcome to ParkEasy', 'Thank you for registering with us!');
@@ -88,7 +76,7 @@ export default class AccountService {
 
     static async registerUser(req: Request, res: Response) {
         try {
-            const { firstName, lastName, email, telephone, password, confirmPassword } = req.body;
+            const { forename, surname, email, telephone, password, confirmPassword } = req.body;
 
             // check if passwords match
             if (password !== confirmPassword) {
@@ -104,10 +92,10 @@ export default class AccountService {
             const roleID = 1; // role is always 1 (user)
 
             // check if email already exists
-            const user = new User('', '', '', '', roleID, '', 0);
+            const user = await new User('', '', '', '', roleID, '', 0);
             const existingUser = await user.findByEmail(email);
 
-            if (existingUser) {
+            if (existingUser !== null) {
                 res.status(409).json({
                     message: 'Email already exists',
                 });
@@ -119,24 +107,9 @@ export default class AccountService {
 
             // Try and query the database
             try {
-                // Start a transaction
-                await connection.beginTransaction();
-            
-                // Insert the address into the database
-                const [addressResult] = await connection.query<OkPacket>('INSERT INTO address (addressLine1, addressLine2, city, postcode) VALUES (?, ?, ?, ?)', [req.body.addressLine1, req.body.addressLine2, req.body.city, req.body.postcode]);
-                const addressID = addressResult.insertId;
-
-                // Insert the user into the database
-                await connection.query(
-                    'INSERT INTO users (firstName, lastName, email, password, roleID, telephone, addressID) VALUES (?, ?, ?, ?, ?, ?, ?);',
-                    [firstName, lastName, email, hashedPassword, roleID, telephone, addressID]
-                );
-
-                // Commit the transaction
-                await connection.commit();
-
-                // Send email
-                sendEmail(email, 'Welcome to ParkEasy', 'Thank you for registering with us!');
+                // Create a new user
+                const user = new User(forename, surname, email, hashedPassword, roleID, telephone, undefined);
+                user.save();
 
                 // Send response
                 res.status(200).json({
@@ -145,12 +118,14 @@ export default class AccountService {
             } catch (error) {
                 // Rollback the transaction
                 await connection.rollback();
+                console.log(error);
                 res.status(500).json({ message: 'Internal Server Error' });
             } finally {
                 // Release the connection
                 connection.release();
             }
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: 'Internal Server Error' })
         }
     }
@@ -212,10 +187,10 @@ export default class AccountService {
             const user = new User('', '', '', '', 0, '', 0);
             const existingUser = await user.findByEmail(email);
 
-            const corporate = new Corporate('', '', '', '', 0, '', 0);
+            const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (!existingUser && !existingCorporate) {
+            if (existingUser == null || existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -285,7 +260,7 @@ export default class AccountService {
             const user = new User('', '', '', '', 0, '', 0);
             const existingUser = await user.findByEmail(email);
 
-            const corporate = new Corporate('', '', '', '', 0, '', 0);
+            const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
             if (!existingUser && !existingCorporate) {
@@ -347,7 +322,7 @@ export default class AccountService {
             const user = new User('', '', '', '', 0, '', 0);
             const existingUser = await user.findByEmail(email);
 
-            const corporate = new Corporate('', '', '', '', 0, '', 0);
+            const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
             if (!existingUser && !existingCorporate) {
@@ -379,23 +354,117 @@ export default class AccountService {
         }
     }
 
+    static async deleteAccount(req: Request, res: Response) {
+        try {
+            const { access_token } = req.body;
+
+            // Check if token is valid
+            const decoded = await sessions.verifyToken(access_token);
+
+            if (!decoded) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Get email from token
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Check account type
+            const user = new User('', '', '', '', 0, '', 0);
+            const existingUser = await user.findByEmail(email);
+
+            const corporate = new Corporate('', '', '', 0, '', 0);
+            const existingCorporate = await corporate.findByEmail(email);
+
+            if (!existingUser && !existingCorporate) {
+                res.status(404).json({
+                    message: 'Account not found',
+                });
+                return;
+            }
+
+            // Delete account
+            if (existingUser) {
+                await user.delete();
+            } else {
+                await corporate.delete();
+            }
+
+            // Delete session
+            sessions.deleteSession(access_token);
+
+            // Send response
+            res.status(200).json({
+                message: 'Account deleted',
+            });
+        } catch (error) {
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
+    static async findUser(req: Request, res: Response) {
+        try {
+            const { access_token } = req.body;
+
+            // Check if token is valid
+            const decoded = await sessions.verifyToken(access_token);
+
+            if (!decoded) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Get email from token
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Check account type
+            const user = new User('', '', '', '', 0, '', 0);
+            const existingUser = await user.findByEmail(email);
+
+            const corporate = new Corporate('', '', '', 0, '', 0);
+            const existingCorporate = await corporate.findByEmail(email);
+
+            if (!existingUser && !existingCorporate) {
+                res.status(404).json({
+                    message: 'Account not found',
+                });
+                return;
+            }
+
+            // Send response
+            if (existingUser) {
+                res.status(200).json({
+                    message: 'User account found',
+                    user: existingUser,
+                });
+            } else {
+                res.status(200).json({
+                    message: 'Corporate account found',
+                    user: existingCorporate,
+                });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
 
 
-
-
-
-
-    // ALL CODE BELOW THIS LINE IS FROM THE ORIGINAL ACCOUNT SERVICE FIL
-    
-
-    /**
-     * Contacts the support team.
-     * @memberof AccountService
-     * @description Contacts the support team.
-     * @param req The request.
-     * @param res The response.
-     * @throws 500 if the email could not be sent.
-     */
     static async contact(req: Request, res: Response) {
         // get data from request
         const { name, email, message } = req.body;
@@ -406,84 +475,14 @@ export default class AccountService {
             await sendEmail(email, 'Support Request', `Thank you for contacting us. We will get back to you as soon as possible.`);
 
             res.status(200).json({
-                message: 'Your message has been sent.',
-                status: 'sent'
+                message: 'Your message has been sent.'
             });
         } catch (error) {
             res.status(500).json({
-                message: 'Something went wrong',
-                status: 'failed'
+                message: 'Something went wrong'
             });
             return;
         }
     }
-
-    /**
-     * Gets the user's profile.
-     * @memberof AccountService
-     * @description Gets the user's profile.
-     * @param req The request.
-     * @param res The response.
-     * @throws 500 if the user's profile could not be retrieved.
-     * @returns The user's profile.
-     */
-    static async findAccount(req: Request, res: Response) {
-        // get data from request
-        const { userToken } = req.body;
-
-        // get email from token
-        const email = await sessions.getEmail(userToken);
-
-        if (!email) {
-            res.status(401).json({
-                message: 'Token is invalid',
-                status: 'error'
-            });
-            return;
-        }
-
-        // Check if the user is a corporate or a personal user
-        const corporateUser = await corporate.findByEmail(email);
-        const personalUser = await user.findByEmail(email);
-
-        // Check if there is an account with the given email
-        if (!corporateUser && !personalUser) {
-            res.status(404).json({
-                message: 'Email does not exist',
-                status: 'error'
-            });
-            return;
-        }
-
-        // get a connection from the pool
-        const connection = await getConnection() as PoolConnection;
-
-        // Try and query the database
-        try {
-            // For corporate users
-            if (corporateUser) {
-                const corporateProfile = await connection.query('SELECT email, name, telephone, addressID FROM corporate WHERE email = ?', [email]);
-                const addressId = corporateProfile[0].addressID;
-
-                res.status(200).json({
-                    message: 'Corporate profile retrieved',
-                    status: 'success',
-                    data: corporateProfile[0]
-                });
-            } else if (personalUser) {
-                const userProfile = await connection.query<OkPacket>('SELECT email, forename, lastname, addressID, telephone FROM users WHERE email = ?', [email]);
-
-                res.status(200).json({
-                    message: 'User profile retrieved',
-                    status: 'success',
-                    data: userProfile[0]
-                });
-            }
-        } finally {
-            // release the connection
-            connection.release();
-        }
-    }
-
 
 }

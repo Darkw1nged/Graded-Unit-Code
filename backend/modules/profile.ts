@@ -1,42 +1,8 @@
 import { getConnection } from '../database';
-import { RowDataPacket, PoolConnection } from 'mysql2/promise';
-import Role from './role';
-import Corporate from './corporate';
-import User from './user';
+import { PoolConnection } from 'mysql2/promise';
 import Address from './address';
 
 export class ProfileDAO {
-
-    async findByEmail(email: string): Promise<Profile> {
-        const connection = await getConnection() as PoolConnection;
-
-        try {
-            const [rows] = await connection.query<RowDataPacket[]>(
-                `SELECT * FROM profiles WHERE email = ?`,
-                [email]
-            );
-    
-            if (rows.length === 0) {
-                throw new Error(`User with email ${email} not found.`);
-            }
-    
-            const profileRow = rows[0];
-            const roleID = profileRow.roleID;
-            const addressID = profileRow.addressID;
-    
-            const role = await Role.findById(roleID);
-    
-            if (role.name === 'Corporate') {
-                return new Corporate(profileRow.name, email, profileRow.password, roleID, profileRow.telephone, addressID);
-            } else if (role.name === 'Personal') {
-                return new User(profileRow.forename, profileRow.lastname, email, profileRow.password, roleID, profileRow.telephone, addressID);
-            } else {
-                throw new Error(`Profile with email ${email} has an invalid role.`);
-            }
-        } finally {
-            connection.release();
-        }
-    }
 
     async create(profile: Profile): Promise<void> {
         const connection = await getConnection() as PoolConnection;
@@ -179,11 +145,6 @@ export default class Profile {
         // You can use the `save()` method from your AddressRepository to save the `address` object in the database
         // and get its `id` value.
         // After you get the `id` value, set the `addressID` field of this Profile instance.
-    }
-
-    findByEmail(email: string): Promise<Profile> {
-        const profileDAO = new ProfileDAO();
-        return profileDAO.findByEmail(email);
     }
 
 }

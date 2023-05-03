@@ -4,17 +4,7 @@ import redirectIfLoggedIn from '../../components/redirects';
 
 const Page = () => {
     redirectIfLoggedIn();
-
-    const [registrationType, setRegistrationType] = useState('');
-
-    const handleRegistrationType = (type: string) => {
-        setRegistrationType(type);
-    };
-
-    const handleFormSubmit = (values: any) => {
-        console.log(values);
-    };
-
+    
     return (
         <div className="form-body">
             <div className="navigation">

@@ -31,25 +31,30 @@ const Page = () => {
             },
             body: JSON.stringify(formValues)
         })
-        .then(res => res.json())
-        .then(response => {
-            if (response.status === 'error') {
+        .then(res => {
+            if (res.status === 400 || res.status === 409 || res.status === 500) {
                 const errorPopup = document.querySelector('.error') as HTMLDivElement;
-                errorPopup.innerHTML = response.message;
+                res.json().then(response => {
+                    errorPopup.innerHTML = response.message;
+                });
                 errorPopup.classList.add('active');
 
-                document.querySelector('.success')?.classList.remove('active');
-                return;
+                const successPopup = document.querySelector('.success') as HTMLDivElement;
+                successPopup.classList.remove('active');
             } else {
                 const successPopup = document.querySelector('.success') as HTMLDivElement;
-                successPopup.innerHTML = response.message;
+                res.json().then(response => {
+                    successPopup.innerHTML = response.message;
+                });
                 successPopup.classList.add('active');
 
-                document.querySelector('.error')?.classList.remove('active');
+                const errorPopup = document.querySelector('.error') as HTMLDivElement;
+                errorPopup.classList.remove('active');
+
+                window.location.href = '/account/login';
             }
-            
-            document.cookie = `access_token=${response.access_token}; path=/;`;
-            window.location.href = '/';
+
+            return res.json();
         })
         .catch(err => {
             console.log('There was a problem with the fetch operation:', err);

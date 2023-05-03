@@ -84,19 +84,20 @@ const craeteProfilesTable = async () => {
   const connection = await getConnection() as PoolConnection;
   try {
     await connection.execute(`
-      CREATE TABLE profiles (
+      CREATE TABLE IF NOT EXISTS profiles (
         id INT PRIMARY KEY AUTO_INCREMENT,
+        businessName VARCHAR(255),
         forename VARCHAR(255),
         lastname VARCHAR(255),
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role_id INT NOT NULL,
+        roleID INT NOT NULL,
         telephone VARCHAR(255),
-        address_id INT NOT NULL,
+        addressID INT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (role_id) REFERENCES roles (id),
-        FOREIGN KEY (address_id) REFERENCES addresses (id)
+        FOREIGN KEY (roleID) REFERENCES roles (roleID),
+        FOREIGN KEY (addressID) REFERENCES addresses (addressID)
       );
     `);
   } catch (err) {
@@ -122,7 +123,7 @@ const createSessionsTable = async () => {
         email VARCHAR(255) NOT NULL,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         expiresAt DATETIME NOT NULL,
-        FOREIGN KEY (email) REFERENCES users(email)
+        FOREIGN KEY (email) REFERENCES profiles(email)
       )
     `);
   } catch (err) {
@@ -244,12 +245,12 @@ const createPaymentsTable = async () => {
 };
 
 const createDefaultRoles = async () => {
-  new Role(1, "Personal").save();
-  new Role(2, "Corporate").save();
-  new Role(3, "Invoices_Clerk").save();
-  new Role(4, "Bookings_Clerk").save();
-  new Role(5, "Manager").save();
-  new Role(6, "Admin").save();
+  await new Role(1, "Personal").save();
+  await new Role(2, "Corporate").save();
+  await new Role(3, "Invoices_Clerk").save();
+  await new Role(4, "Bookings_Clerk").save();
+  await new Role(5, "Manager").save();
+  await new Role(6, "Admin").save();
 };
 
 const createDefaultUsers = async () => {
