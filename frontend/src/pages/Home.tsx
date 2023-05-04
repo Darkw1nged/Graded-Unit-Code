@@ -3,10 +3,6 @@ import { useContext } from "react";
 import { AppContext } from "../components/context";
 import '../style/home.css'
 
-type LayoutProps = {
-  isAdmin: boolean;
-};
-
 const Page = () => {
     const isLoggedIn = document.cookie.includes("access_token");
     const { toggleAdmin } = useContext(AppContext);
@@ -24,8 +20,8 @@ const Page = () => {
                   <div className="account-links">
                     <ul>
                       <li><Link to="/admin/dashboard" onClick={toggleAdmin}>Dashboard</Link></li>
-                      <li><Link to="">Profile</Link></li>
-                      <li><Link to="">Edit Profile</Link></li>
+                      <li><Link to="/account">Profile</Link></li>
+                      <li><Link to="/account/edit">Edit Profile</Link></li>
                       <li><Link to="/account/Logout">Logout</Link></li>
                     </ul>
                   </div>

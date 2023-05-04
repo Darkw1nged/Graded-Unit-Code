@@ -18,6 +18,8 @@ import Login from "../pages/account/Login";
 import Logout from "../pages/account/Logout";
 import ForgotPassword from "../pages/account/ForgotPassword";
 import ResetPassword from "../pages/account/ResetPassword";
+import Profile from "../pages/account/Profile";
+import EditProfile from "../pages/account/Edit-Profile";
 
 import SearchBooking from "../pages/booking/Search";
 import CreateBooking from "../pages/booking/Create";
@@ -48,6 +50,8 @@ function Navigation() {
             <Route path="account/logout" element={<Logout />} />
             <Route path="account/forgot-password" element={<ForgotPassword />} />
             <Route path="account/reset-password" element={<ResetPassword />} />
+            <Route path="account" element={<Profile />} />
+            <Route path="account/edit" element={<EditProfile />} />
             <Route path="booking/search" element={<SearchBooking />} />
             <Route path="booking/create" element={<CreateBooking />} />
             <Route path="admin/dashboard" element={<Dashboard />} />

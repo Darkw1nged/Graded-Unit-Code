@@ -14,6 +14,8 @@ import sessions from './modules/sessions';
 
 import Corporate from './modules/corporate';
 import User from './modules/user';
+import Vehicle from './modules/vehicles';
+import Booking from './modules/booking';
 
 export default class AccountService {
 
@@ -460,6 +462,69 @@ export default class AccountService {
                     message: 'Corporate account found',
                     user: existingCorporate,
                     isCorporateUser: true,
+                });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
+    static async getProfileDetails(req: Request, res: Response) {
+        try {
+            const { access_token } = req.body;
+
+            // Check if token is valid
+            const decoded = await sessions.verifyToken(access_token);
+
+            if (!decoded) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Get email from token
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // Check account type
+            const user = new User('', '', '', '', 0, '', 0);
+            const existingUser = await user.findByEmail(email);
+            
+            const corporate = new Corporate('', '', '', 0, '', 0);
+            const existingCorporate = await corporate.findByEmail(email);
+
+            if (existingUser == null && existingCorporate == null) {
+                res.status(404).json({
+                    message: 'Account not found',
+                });
+                return;
+            }
+
+            const vehicles = await Vehicle.getAllByEmail(email);
+            const bookings = await Booking.getBookingsByUser(email);
+
+            // Send response
+            if (existingUser)   {
+                res.status(200).json({
+                    message: 'User account found',
+                    user: existingUser,
+                    isCorporateUser: false,
+                    vehicles,
+                    bookings
+                });
+            } else {
+                res.status(200).json({
+                    message: 'Corporate account found',
+                    user: existingCorporate,
+                    isCorporateUser: true,
+                    vehicles,
+                    bookings
                 });
             }
         } catch (error) {

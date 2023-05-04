@@ -73,6 +73,7 @@ class Server {
         this.app.post('/account/delete', AccountService.deleteAccount);
 
         this.app.post('/account/find', AccountService.findUser);
+        this.app.post('/account/get/profile-details', AccountService.getProfileDetails);
 
         this.app.post('/contact', AccountService.contact);
 
