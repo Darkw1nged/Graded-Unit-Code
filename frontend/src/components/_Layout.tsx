@@ -14,17 +14,32 @@ const Layout = ({ isAdmin }: LayoutProps) => {
     const { toggleAdmin } = useContext(AppContext);
 
     const location = useLocation();
+    const navRoutes = [
+        "/account",
+        "/account/edit",
+        "/contact",
+        "/booking/search",
+        "/booking/create",
+        "/admin/dashboard",
+        "/admin/members",
+        "/admin/staff",
+        "/admin/bookings",
+        "/admin/website-settings",
+        "/admin/analytics",
+        "/admin/arrival-times"
+    ];
 
-    // We dont want to show the navigation on the following pages
-    if (
-        location.pathname === "/account/register" ||
-        location.pathname === "/account/register/personal" ||
-        location.pathname === "/account/register/corporate" ||
-        location.pathname === "/account/login" ||
-        location.pathname === "/account/forgot-password" ||
-        location.pathname === "/account/reset-password" ||
-        location.pathname === "/"
-    ) return <Outlet />;
+    if (!navRoutes.includes(location.pathname)) {
+        return <Outlet />;
+    }
+
+    const toggleNav = () => {
+        const nav = document.querySelector("nav");
+        
+        if (nav !== null) {
+            nav.classList.toggle("open");
+        }
+    }
 
     return (
     <>
@@ -133,8 +148,8 @@ const Layout = ({ isAdmin }: LayoutProps) => {
                         <div className="account-links">
                             <ul>
                                 <li><Link to="/admin/dashboard" onClick={toggleAdmin}>Dashboard</Link></li>
-                                <li><Link to="">Profile</Link></li>
-                                <li><Link to="">Edit Profile</Link></li>
+                                <li><Link to="/account">Profile</Link></li>
+                                <li><Link to="/account/edit">Edit Profile</Link></li>
                                 <li><Link to="/account/Logout">Logout</Link></li>
                             </ul>
                         </div>
@@ -159,11 +174,3 @@ const Layout = ({ isAdmin }: LayoutProps) => {
 };
 
 export default Layout;
-
-function toggleNav() {
-    const nav = document.querySelector("nav");
-    
-    if (nav !== null) {
-        nav.classList.toggle("open");
-    }
-}
