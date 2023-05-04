@@ -1,14 +1,8 @@
 import '../../style/admin-dash.css'
+import { redirectIfNotLoggedIn } from '../../components/redirects';
 
 const Dashboard = () => {
-
-    // check if user is logged in and can access this page, sessionID is stored in cookies userToken
-    const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken='))?.split('=')[1]
-    console.log(userToken)
-    
-    if (!userToken) {
-        window.location.href = '/login'
-    }
+    redirectIfNotLoggedIn();
 
     const profiles = Array.from({ length: 11 }, (_, i) => ({
         id: i,
