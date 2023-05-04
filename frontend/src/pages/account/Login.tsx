@@ -32,26 +32,33 @@ const Page = () => {
             },
             body: JSON.stringify(formValues),
         })
-        .then(response => response.json())
-        .then(response => {
-            if (response.status === 'error') {
-                const errorPopup = document.querySelector('.error') as HTMLDivElement;
-                errorPopup.innerHTML = response.message;
-                errorPopup.classList.add('active');
+        .then(async res =>{
+            if (res.status === 404 || res.status === 401 || res.status === 500) {
+                res.json().then(response => {
+                    const errorPopup = document.querySelector('.error') as HTMLDivElement;
+                        errorPopup.innerHTML = response.message;
+                    errorPopup.classList.add('active');
 
-                document.querySelector('.success')?.classList.remove('active');
-                return;
+                    const successPopup = document.querySelector('.success') as HTMLDivElement;
+                    successPopup.classList.remove('active');
+                });
             } else {
-                const successPopup = document.querySelector('.success') as HTMLDivElement;
-                successPopup.innerHTML = response.message;
-                successPopup.classList.add('active');
+                res.json().then(response => {
+                    const successPopup = document.querySelector('.success') as HTMLDivElement;
+                
+                    successPopup.innerHTML = response.message;
+                    successPopup.classList.add('active');
 
-                document.querySelector('.error')?.classList.remove('active');
+                    const errorPopup = document.querySelector('.error') as HTMLDivElement;
+                    errorPopup.classList.remove('active');
+
+                    const expires = new Date(new Date() + response.expires);
+                    document.cookie = `access_token=${response.access_token}; expires=${expires}; path=/`;
+                    window.location.href = '/';
+                });
             }
 
-            const expires = new Date(Date.now() + response.expiresIn * 1000).toUTCString();
-            document.cookie = `access_token=${response.access_token}; expires=${expires}; path=/`;
-            window.location.href = "/";
+            return res.json();
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);

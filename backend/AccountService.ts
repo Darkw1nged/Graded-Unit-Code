@@ -190,7 +190,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (existingUser == null || existingCorporate == null) {
+            if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -198,7 +198,7 @@ export default class AccountService {
             }
 
             // Check if password is correct
-            const isPasswordCorrect = compareSync(password, existingUser ? existingUser.password : existingCorporate.password);
+            const isPasswordCorrect = compareSync(password, existingUser ? existingUser.password : existingCorporate ? existingCorporate.password : '');
 
             if (!isPasswordCorrect) {
                 res.status(401).json({
@@ -219,6 +219,7 @@ export default class AccountService {
             res.status(200).json({
                 message: 'Login successful',
                 access_token: token,
+                expires: expireTime,
             });
         } catch (error) {
             res.status(500).json({ message: 'Internal Server Error' });
@@ -263,7 +264,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (!existingUser && !existingCorporate) {
+            if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -325,7 +326,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (!existingUser && !existingCorporate) {
+            if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -384,7 +385,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (!existingUser && !existingCorporate) {
+            if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -440,7 +441,7 @@ export default class AccountService {
             const corporate = new Corporate('', '', '', 0, '', 0);
             const existingCorporate = await corporate.findByEmail(email);
 
-            if (!existingUser && !existingCorporate) {
+            if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
                     message: 'Account not found',
                 });
@@ -448,15 +449,17 @@ export default class AccountService {
             }
 
             // Send response
-            if (existingUser) {
+            if (existingUser)   {
                 res.status(200).json({
                     message: 'User account found',
                     user: existingUser,
+                    isCorporateUser: false,
                 });
             } else {
                 res.status(200).json({
                     message: 'Corporate account found',
                     user: existingCorporate,
+                    isCorporateUser: true,
                 });
             }
         } catch (error) {
