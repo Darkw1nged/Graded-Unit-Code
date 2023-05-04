@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import '../style/contact.css'
+import { response } from 'express';
 
 const Page = () => {
 
@@ -28,27 +29,29 @@ const Page = () => {
       },
       body: JSON.stringify(formValues),
     })
-    .then(response => response.json())
-    .then(response => {
-      if (response.status === 'sent') {
-        const successMessage = document.querySelector('.success') as HTMLElement;
-        successMessage.innerHTML = response.message;
-        successMessage.classList.add('active');
+    .then(res => {
+      if (res.status !== 200) {
+        res.json().then(response => {
+          const errorMessage = document.querySelector('.error') as HTMLElement;
+          errorMessage.innerHTML = response.message;
+          errorMessage.classList.add('active');
 
-        document.querySelector('.error')?.classList.remove('active');
-
-        setFormValues({
-          name: '',
-          email: '',
-          message: ''
-        });
-
+          document.querySelector('.success')?.classList.remove('active');
+        })
       } else {
-        const errorMessage = document.querySelector('.error') as HTMLElement;
-        errorMessage.innerHTML = response.message;
-        errorMessage.classList.add('active');
+        res.json().then(response => {
+          const successMessage = document.querySelector('.success') as HTMLElement;
+          successMessage.innerHTML = response.message;
+          successMessage.classList.add('active');
 
-        document.querySelector('.success')?.classList.remove('active');
+          document.querySelector('.error')?.classList.remove('active');
+
+          setFormValues({
+            name: '',
+            email: '',
+            message: ''
+          });
+        })
       }
     })
     .catch((error) => {
