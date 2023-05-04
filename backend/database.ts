@@ -146,15 +146,48 @@ const createVehiclesTable = async () => {
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS vehicles (
         registration VARCHAR(255) PRIMARY KEY,
+        userEmail VARCHAR(255) UNIQUE NOT NULL,
         make VARCHAR(255) NOT NULL,
         model VARCHAR(255) NOT NULL,
         colour VARCHAR(255) NOT NULL,
-        occupants INT NOT NULL,
-        hire_date DATE NOT NULL
+        FOREIGN KEY (userEmail) REFERENCES profiles(email)
       )
     `);
   } catch (err) {
     console.log('Error creating vehicles table', err);
+  } finally {
+    connection.release();
+  }
+};
+
+/**
+ * Create the bookings table
+ * @param {Error} err - Any error encountered while creating the table
+ * @param {*} results - Results from creating the table
+ * @param {*} fields - Fields used to create the table
+ */
+const createBookingsTable = async () => {
+  const connection = await getConnection() as PoolConnection;
+  try {
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS bookings (
+        bookingID INT AUTO_INCREMENT PRIMARY KEY,
+        userEmail VARCHAR(255) NOT NULL,
+        registration VARCHAR(255) NOT NULL,
+        spaceNumber INT NOT NULL,
+        dateBooked DATE NOT NULL,
+        bookedFrom DATETIME NOT NULL,
+        bookedTo DATETIME NOT NULL,
+        carService BOOLEAN NOT NULL,
+        carValet BOOLEAN NOT NULL,
+        discount INT NOT NULL,
+        cost DECIMAL(10,2) NOT NULL,
+        isCancelled BOOLEAN NOT NULL,
+        FOREIGN KEY (registration) REFERENCES vehicles(registration)
+      )    
+    `);
+  } catch (err) {
+    console.log('Error creating bookings table', err);
   } finally {
     connection.release();
   }
@@ -190,40 +223,10 @@ const createFlightsTable = async () => {
 };
 
 /**
- * Create the bookings table
- * @param {Error} err - Any error encountered while creating the table
- * @param {*} results - Results from creating the table
- * @param {*} fields - Fields used to create the table
- */
-const createBookingsTable = async () => {
-  const connection = await getConnection() as PoolConnection;
-  try {
-    await connection.execute(`
-      CREATE TABLE IF NOT EXISTS bookings (
-        bookingID INT AUTO_INCREMENT PRIMARY KEY,
-        userEmail VARCHAR(255) NOT NULL, 
-        space_number INT NOT NULL,
-        dateBooked DATE NOT NULL,
-        bookedFrom DATE NOT NULL,
-        bookedTo DATE NOT NULL,
-        discount INT NOT NULL,
-        cost DECIMAL(10,2) NOT NULL,
-        booked BOOLEAN NOT NULL
-      )
-    `);
-  } catch (err) {
-    console.log('Error creating bookings table', err);
-  } finally {
-    connection.release();
-  }
-};
-
-/**
  * Create the payments table
  * @param {Error} err - Any error encountered while creating the table
  * @param {*} results - Results from creating the table
  * @param {*} fields - Fields used to create the table
- * @deprecated Using stripe instead
  */
 const createPaymentsTable = async () => {
   const connection = await getConnection() as PoolConnection;
