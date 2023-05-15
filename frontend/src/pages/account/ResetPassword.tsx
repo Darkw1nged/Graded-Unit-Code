@@ -34,7 +34,7 @@ const Page = () => {
             body: JSON.stringify(formValues),
         })
         .then(async res =>{
-            if (res.status === 400 || res.status === 409 || res.status === 500) {
+            if (res.status === 400 || res.status === 401 || res.status === 404 || res.status === 500) {
                 const errorPopup = document.querySelector('.error') as HTMLDivElement;
                 res.json().then(response => {
                     errorPopup.innerHTML = response.message;
