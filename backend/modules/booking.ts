@@ -115,6 +115,25 @@ export class BookingDAO {
         return [];
     }
 
+    async getBookingsByDate(start: Date, end: Date): Promise<Booking[]> {
+        const connection = await getConnection() as PoolConnection;
+        try {
+            const [rows] = await connection.execute<RowDataPacket[]>(`
+                SELECT * FROM bookings WHERE bookedFrom >= ? AND bookedTo <= ?
+            `, [start, end]);
+            const bookings: Booking[] = [];
+            rows.forEach(row => {
+                bookings.push(new Booking(row.spaceNumber, row.dateBooked, row.bookedFrom, row.bookedTo, row.carService, row.carValet, row.discount, row.cost, row.isCancelled));
+            });
+            return bookings;
+        } catch (err) {
+            console.log('Error getting bookings', err);
+        } finally {
+            connection.release();
+        }
+        return [];
+    }
+
 }
 
 export default class Booking {
@@ -257,6 +276,11 @@ export default class Booking {
     static async getBookingsByVehicle(registration: string): Promise<Booking[]> {
         const bookingDAO = new BookingDAO();
         return await bookingDAO.getBookingsByVehicle(registration);
+    }
+
+    static async getBookingsByDate(start: Date, end: Date): Promise<Booking[]> {
+        const bookingDAO = new BookingDAO();
+        return await bookingDAO.getBookingsByDate(start, end);
     }
 
 }

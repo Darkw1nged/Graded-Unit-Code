@@ -3,13 +3,13 @@ import { PoolConnection, RowDataPacket } from 'mysql2/promise';
 
 export class VehicleDAO {
 
-    async save(vehicle: Vehicle): Promise<void> {
+    async create(vehicle: Vehicle, userEmail: string): Promise<void> {
         const connection = await getConnection() as PoolConnection;
         try {
             await connection.execute(`
-                INSERT INTO vehicles (registration, make, model, colour)
-                VALUES (?, ?, ?, ?)
-            `, [vehicle.getRegistration(), vehicle.getMake(), vehicle.getModel(), vehicle.getColour()]);
+                INSERT INTO vehicles (registration, userEmail, make, model, colour)
+                VALUES (?, ?, ?, ?, ?)
+            `, [vehicle.getRegistration(), userEmail, vehicle.getMake(), vehicle.getModel(), vehicle.getColour()]);
         } catch (err) {
             console.log('Error saving vehicle', err);
         } finally {
@@ -144,9 +144,9 @@ export default class Vehicle {
         this.colour = colour;
     }
 
-    async save(): Promise<void> {
+    async create(userEmail: string): Promise<void> {
         const vehicleDAO = new VehicleDAO();
-        await vehicleDAO.save(this);
+        await vehicleDAO.create(this, userEmail);
     }
     
     async update(): Promise<void> {

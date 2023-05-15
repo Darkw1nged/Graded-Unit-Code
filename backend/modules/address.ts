@@ -1,5 +1,5 @@
 import { getConnection } from '../database';
-import { PoolConnection, RowDataPacket } from 'mysql2/promise';
+import { OkPacket, PoolConnection, RowDataPacket } from 'mysql2/promise';
 
 export class AddressDAO {
 
@@ -8,7 +8,7 @@ export class AddressDAO {
 
         try {
             const [rows] = await connection.query<RowDataPacket[]>(
-                'SELECT * FROM addresses WHERE id = ? LIMIT 1;',
+                'SELECT * FROM addresses WHERE addressID = ? LIMIT 1;',
                 [addressID]
             );
             
@@ -19,6 +19,38 @@ export class AddressDAO {
             const addressRow = rows[0];
             return new Address(addressRow.addressLineOne, addressRow.addressLineTwo, addressRow.postcode, addressRow.city, addressRow.country);
 
+        } finally {
+            connection.release();
+        }
+    }
+
+    async getAddressByFullAddress(fullAddress: string): Promise<Address | undefined> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query<RowDataPacket[]>(
+                'SELECT * FROM addresses WHERE CONCAT(addressLineOne, ", ", addressLineTwo, ", ", postcode, ", ", city, ", ", country) = ? LIMIT 1;',
+                [fullAddress]
+            );
+            
+            if (rows.length === 0) {
+                return undefined;
+            }
+        } finally {
+            connection.release();
+        }
+    }
+
+    async createAddress(address: Address): Promise<number> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query<OkPacket>(
+                'INSERT INTO addresses (addressLineOne, addressLineTwo, postcode, city, country) VALUES (?, ?, ?, ?, ?);',
+                [address.getAddressLineOne(), address.getAddressLineTwo(), address.getPostcode(), address.getCity(), address.getCountry()]
+            );
+
+            return rows.insertId;
         } finally {
             connection.release();
         }
@@ -90,9 +122,21 @@ export default class Address {
         return `${this.addressLineOne}, ${this.addressLineTwo}, ${this.postcode}, ${this.city}, ${this.country}`;
     }
 
-    getAddressByID(addressID: number): Promise<Address | undefined> {
+    static getAddressByID(addressID: number | undefined): Promise<Address | undefined> {
+        if (!addressID) return Promise.resolve(undefined);
+
         const addressDAO = new AddressDAO();
         return addressDAO.getAddressByID(addressID);
+    }
+
+    static getAddressByFullAddress(fullAddress: string): Promise<Address | undefined> {
+        const addressDAO = new AddressDAO();
+        return addressDAO.getAddressByFullAddress(fullAddress);
+    }
+
+    static create(address: Address): Promise<number> {
+        const addressDAO = new AddressDAO();
+        return addressDAO.createAddress(address);
     }
 
 }
