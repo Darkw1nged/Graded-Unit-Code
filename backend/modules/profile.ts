@@ -75,6 +75,36 @@ export class ProfileDAO {
         }
     }
 
+    async getAllStaff(): Promise<Profile[]> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query(
+                'SELECT * FROM profiles WHERE roleID BETWEEN 3 AND 6;'
+            );
+
+            return rows as Profile[];
+        }
+        finally {
+            connection.release();
+        }
+    }
+
+    async getAllCustomers(): Promise<Profile[]> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query(
+                'SELECT * FROM profiles WHERE roleID BETWEEN 1 AND 2;'
+            );
+
+            return rows as Profile[];
+        }
+        finally {
+            connection.release();
+        }
+    }
+
 }
 
 export default class Profile {
@@ -182,7 +212,14 @@ export default class Profile {
         return await profileDAO.getAllProfilesByDate(start, end);
     }
 
+    static async getAllStaff(): Promise<Profile[]> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getAllStaff();
+    }
 
-
+    static async getAllCustomers(): Promise<Profile[]> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getAllCustomers();
+    }
 
 }

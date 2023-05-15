@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import '../../style/admin-staff.css'
+
+interface Profile {
+    forename: string;
+    lastname: string;
+    email: string;
+    role: string;
+    bookings: number;
+}
 
 const Page = () => {
     const [optionsVisible, setOptionsVisible] = useState(false);
@@ -14,13 +22,30 @@ const Page = () => {
         setOptionsVisible(false);
     };
 
-    const profiles = Array.from({ length: 100 }, (_, i) => ({
-        id: i,
-        name: `John Doe ${i}`,
-        role: 'Administrator',
-        bookings: 200,
-        imageUrl: 'images/Profile_avatar_placeholder.png',
-    }));
+    const [profiles, setProfiles] = useState<Profile[]>([]);
+
+    useEffect(() => {
+        fetch('http://localhost:5000/admin/get/staff', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(response => {
+                    setProfiles(response);
+                })
+            } else {
+                res.json().then(response => {
+                    console.log(response.message);
+                })
+            }
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });            
+    }, []);
 
     return (
         <main>
@@ -43,7 +68,7 @@ const Page = () => {
 
             <div className="staff">
                 {profiles.map((profile) => (
-                    <div className="profile" key={profile.id}>
+                    <div className="profile" key={profile.email}>
                         <div className="options">
                             <div className="row" onMouseOver={showOptions} onMouseOut={hideOptions}>
                                 <span></span>
@@ -60,8 +85,8 @@ const Page = () => {
                         </div>
     
                         <div className="header">
-                            <img src={profile.imageUrl} alt="icon" />
-                            <h2>{profile.name}</h2>
+                            <img src={'/Profile_avatar_placeholder.png'} alt="icon" />
+                            <h2>{profile.forename + ' ' + profile.lastname}</h2>
                             <p>{profile.role}</p>
                         </div>
     

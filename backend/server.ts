@@ -85,6 +85,8 @@ class Server {
 
         this.app.get('/admin/statistics', AdminService.getStatistics);
         this.app.get('/admin/users', AdminService.getUsers);
+        this.app.get('/admin/get/staff', AdminService.getStaff);
+        this.app.get('/admin/get/customers', AdminService.getCustomers);
     }
 
     private app: express.Application;

@@ -37,4 +37,22 @@ export default class AccountService {
         }
     }
 
+    static async getStaff(req: Request, res: Response) {
+        try {
+            const staff = await Profile.getAllStaff();
+            res.status(200).json(staff);
+        } catch (error) {
+            res.status(500).json({ message: 'Internal Server Error' })
+        }
+    }
+
+    static async getCustomers(req: Request, res: Response) {
+        try {
+            const customers = await Profile.getAllCustomers();
+            res.status(200).json(customers);
+        } catch (error) {
+            res.status(500).json({ message: 'Internal Server Error' })
+        }
+    }
+
 }
