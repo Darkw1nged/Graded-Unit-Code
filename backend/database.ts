@@ -15,6 +15,10 @@ const pool = mysql.createPool({
   database: config.database.database,
   password: config.database.password,
   port: config.database.port,
+  waitForConnections: true,
+  connectionLimit: 100,
+  queueLimit: 0,
+  idleTimeout: 60 * 60 * 1000,
 });
 
 export const getConnection = () => {
