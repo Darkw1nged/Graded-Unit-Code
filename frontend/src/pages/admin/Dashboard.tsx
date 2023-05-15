@@ -1,5 +1,6 @@
 import '../../style/admin-dash.css'
 import { redirectIfNotLoggedIn } from '../../components/redirects';
+import { useEffect, useState } from 'react';
 
 const Dashboard = () => {
     redirectIfNotLoggedIn();
@@ -13,6 +14,69 @@ const Dashboard = () => {
         phone: `555-555-${i.toString().padStart(4, '0')}`,
     }));
 
+    const [profilesList, setProfilesList] = useState([{
+        forename: '',
+        lastname: '',
+        created_at: '',
+        email: '',
+        telephone: '',
+    }]);
+
+    useEffect(() => {
+        fetch('http://localhost:5000/admin/users', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(response => {
+                    setProfilesList(response);
+                })
+            } else {
+                res.json().then(response => {
+                    console.log(response.message);
+                })
+            }
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }, []);
+
+    console.log(profilesList);
+
+    const [statistics, setStatistics] = useState({
+        sales: 0,
+        members: 0,
+        bookings: 0,
+        spaces: 0,
+    });
+
+    useEffect(() => {
+        fetch('http://localhost:5000/admin/statistics', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(response => {
+                    setStatistics(response);
+                })
+            } else {
+                res.json().then(response => {
+                    console.log(response.message);
+                })
+            }
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }, []);
+
     return (
         <main>
             <div className="stats">
@@ -20,7 +84,7 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Sales</p>
-                            <h2>£1,000</h2>
+                            <h2>£{statistics.sales || 0}</h2>
                         </div>
                         <div className="bubble">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-credit-card" viewBox="0 0 16 16"> 
@@ -39,7 +103,7 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Members</p>
-                            <h2>100</h2>
+                            <h2>{statistics.members || 0}</h2>
                         </div>
                         <div className="bubble">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-people" viewBox="0 0 16 16">
@@ -58,16 +122,16 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Bookings</p>
-                            <h2>100</h2>
+                            <h2>{statistics.bookings || 0}</h2>
                         </div>
                         <div className="bubble">
                             <svg width="16" height="16" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="9" y="8" width="30" height="36" rx="2" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
-                                <path d="M18 4V10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M30 4V10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M16 19L32 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M16 27L28 27" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M16 35H24" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="9" y="8" width="30" height="36" rx="2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round"/>
+                                <path d="M18 4V10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M30 4V10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M16 19L32 19" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M16 27L28 27" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M16 35H24" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                         </div>
                     </div>
@@ -82,7 +146,7 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Spaces Available </p>
-                            <h2>344</h2>
+                            <h2>{statistics.spaces || 150}</h2>
                         </div>
                         <div className="bubble">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -101,31 +165,39 @@ const Dashboard = () => {
             <div className="users">
                 <h1>New Users</h1>
                 <table>
-                    <tr className="heading">
-                        <th>Name</th>
-                        <th>Registered</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th></th>
-                    </tr>
-
-                    {profiles.map((profile) => (
-                        <tr className="user">
-                            <td>{profile.name}</td>
-                            <td>{profile.joined}</td>
-                            <td>{profile.email}</td>
-                            <td>{profile.phone}</td>
-                            <td>
-                                <a href="">View</a>
-                                <a href="">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
-                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
-                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
-                                    </svg>
-                                </a>
-                            </td>
+                    <thead>
+                        <tr className="heading">
+                            <th>Name</th>
+                            <th>Registered</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th></th>
                         </tr>
-                    ))}
+                    </thead>
+
+                    { profilesList.length > 0 ? profilesList.map((profile) => (
+                        <tbody>
+                            <tr className="user">
+                                <td>{profile.forename + ' ' + profile.lastname}</td>
+                                <td>{new Date(profile.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                <td>{profile.email}</td>
+                                <td>{profile.telephone}</td>
+                                <td>
+                                    <a href="">View</a>
+                                    <a href="">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
+                                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    )) : (
+                        <tr className="user">
+                            <td colSpan={6}>No users were found.</td>
+                        </tr>
+                    )}
 
                 </table>
             </div>
