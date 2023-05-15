@@ -398,6 +398,8 @@ export default class AccountService {
                 return;
             }
 
+            await sendEmail(email, 'Account Deleted', 'Your account has been successfully deleted.');
+
             // Send response
             res.status(200).json({
                 message: 'Account deleted',
