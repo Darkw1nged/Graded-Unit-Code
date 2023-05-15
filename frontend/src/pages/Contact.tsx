@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import '../style/contact.css'
-import { response } from 'express';
 
 const Page = () => {
 
