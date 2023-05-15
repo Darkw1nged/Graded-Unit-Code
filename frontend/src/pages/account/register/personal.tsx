@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import redirectIfLoggedIn from '../../../components/redirects';
 // import GoogleLogin from 'react-google-login';
 // import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
@@ -99,7 +99,7 @@ const Page = () => {
 
             <div className="popup">
                 <div className="error">
-                    <p>s</p>
+                    <p></p>
                 </div>
                 <div className="success">
                     <p></p>

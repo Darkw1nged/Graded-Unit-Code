@@ -86,7 +86,6 @@ const Page = () => {
 
     return (
         <div className="booking-page">
-            <h1>Booking</h1>
             <form onSubmit={handleFormSubmit} name="search-bookings">
                 <div className="item">
                     <span>Departure Time</span>

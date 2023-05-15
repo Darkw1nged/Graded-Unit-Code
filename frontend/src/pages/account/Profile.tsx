@@ -97,9 +97,9 @@ const page = () => {
                 </div>
 
                 <div className="profile-info">
-                    <h1>{profile.forename + profile.lastname}</h1>
+                    <h1>{profile.forename + profile.lastname || 'There was an error getting your profile.'}</h1>
                     <ul>
-                        <li>Email: {profile.email}</li>
+                        <li>Email: {profile.email || 'No email was found.'}</li>
                         <li>Telephone: {profile.telephone || 'No number was found.'}</li>
                     </ul>
                     
@@ -113,33 +113,37 @@ const page = () => {
             <div className="table">
                 <h1>Bookings</h1>
                 <table>
-                    <tr className="heading">
-                        <th>Space</th>
-                        <th>Booked</th>
-                        <th>Starts</th>
-                        <th>Ends</th>
-                        <th>Cost</th>
-                        <th></th>
-                    </tr>
-
-                    { bookings.length > 0 ? bookings.map(booking => (
-                        <tr className="item">
-                            <td>{booking.spaceNumber}</td>
-                            <td>{booking.dateBooked}</td>
-                            <td>{booking.bookedFrom}</td>
-                            <td>{booking.bookedTo}</td>
-                            <td>£{booking.cost}</td>
-
-                            <td>
-                                <a>Edit</a>
-                                <a>Cancel</a>
-                            </td>
+                    <thead>
+                        <tr className="heading">
+                            <th>Space</th>
+                            <th>Booked</th>
+                            <th>Starts</th>
+                            <th>Ends</th>
+                            <th>Cost</th>
+                            <th></th>
                         </tr>
-                    )) : (
-                        <tr className="item">
-                            <td colSpan={6}>No bookings were found.</td>
-                        </tr>
-                    )}
+                    </thead>
+
+                    <tbody>
+                        { bookings.length > 0 ? bookings.map(booking => (
+                            <tr className="item">
+                                <td>{booking.spaceNumber}</td>
+                                <td>{booking.dateBooked}</td>
+                                <td>{booking.bookedFrom}</td>
+                                <td>{booking.bookedTo}</td>
+                                <td>£{booking.cost}</td>
+
+                                <td>
+                                    <a>Edit</a>
+                                    <a>Cancel</a>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr className="item">
+                                <td colSpan={6}>No bookings were found.</td>
+                            </tr>
+                        )}
+                    </tbody>
 
                 </table>
             </div>
@@ -147,37 +151,39 @@ const page = () => {
             <div className="table">
                 <h1>Vehicles</h1>
                 <table>
-                    <tr className="heading">
-                        <th>Registration</th>
-                        <th>Make</th>
-                        <th>Model</th>
-                        <th>Colour</th>
-                        <th></th>
-                    </tr>
-
-                    { vehicles.length > 0 ? vehicles.map(vehicle => (
-                        <tr className="item">
-                            <td>{vehicle.registration}</td>
-                            <td>{vehicle.make}</td>
-                            <td>{vehicle.model}</td>
-                            <td>{vehicle.colour}</td>
-                            
-                            <td>
-                                <a>View</a>
-                                <a>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
-                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
-                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
-                                    </svg>
-                                </a>
-                            </td>
+                    <thead>
+                        <tr className="heading">
+                            <th>Registration</th>
+                            <th>Make</th>
+                            <th>Model</th>
+                            <th>Colour</th>
+                            <th></th>
                         </tr>
-                    )) : (
-                        <tr className="item">
-                            <td colSpan={5}>No vehicles found</td>
-                        </tr>
-                    )}
-
+                    </thead>
+                    <tbody>
+                        { vehicles.length > 0 ? vehicles.map(vehicle => (
+                            <tr className="item">
+                                <td>{vehicle.registration}</td>
+                                <td>{vehicle.make}</td>
+                                <td>{vehicle.model}</td>
+                                <td>{vehicle.colour}</td>
+                                
+                                <td>
+                                    <a>View</a>
+                                    <a>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
+                                        </svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr className="item">
+                                <td colSpan={5}>No vehicles found</td>
+                            </tr>
+                        )}
+                    </tbody>
                 </table>
             </div>
         </div>
