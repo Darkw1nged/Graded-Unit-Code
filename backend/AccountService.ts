@@ -1,21 +1,15 @@
 import { Request, Response } from 'express';
 import { hashSync, genSaltSync, compareSync } from 'bcrypt';
-import { sign } from 'jsonwebtoken';
 import { sendEmail } from './email-service';
 import { getConnection } from './database';
 import { PoolConnection, RowDataPacket, OkPacket } from 'mysql2/promise';
-import { randomUUID } from 'crypto';
 
-import config from './config';
-import corporate from './modules/corporate';
 import sessions from './modules/sessions';
-
-
-
 import Corporate from './modules/corporate';
 import User from './modules/user';
 import Vehicle from './modules/vehicles';
 import Booking from './modules/booking';
+import Address from './modules/address';
 
 export default class AccountService {
 
@@ -37,10 +31,10 @@ export default class AccountService {
             const roleID = 2; // role is always 2 (corporate)
 
             // check if email already exists
-            const corporate = new Corporate('', '', '', roleID, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
-            if (existingCorporate !== null) {
+            if (existingUser !== null || existingCorporate !== null) {
                 res.status(409).json({
                     message: 'Email already exists',
                 });
@@ -54,7 +48,7 @@ export default class AccountService {
             try {
                 // Create a new corporate
                 const corporate = await new Corporate(buisnessName, email, hashedPassword, roleID, telephone, undefined);
-                corporate.save();
+                corporate.create();
 
                 // Send email
                 sendEmail(email, 'Welcome to ParkEasy', 'Thank you for registering with us!');
@@ -94,10 +88,10 @@ export default class AccountService {
             const roleID = 1; // role is always 1 (user)
 
             // check if email already exists
-            const user = await new User('', '', '', '', roleID, '', 0);
-            const existingUser = await user.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
-            if (existingUser !== null) {
+            if (existingUser !== null || existingCorporate !== null) {
                 res.status(409).json({
                     message: 'Email already exists',
                 });
@@ -111,7 +105,7 @@ export default class AccountService {
             try {
                 // Create a new user
                 const user = new User(forename, surname, email, hashedPassword, roleID, telephone, undefined);
-                user.save();
+                user.create();
 
                 // Send response
                 res.status(200).json({
@@ -186,11 +180,8 @@ export default class AccountService {
 
 
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -260,11 +251,8 @@ export default class AccountService {
             const { email } = req.body;
 
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -280,6 +268,8 @@ export default class AccountService {
 
             // Send email
             await sendEmail(email, 'Reset Password', `Click the link below to reset your password: ${link}`);
+            // Create session
+            sessions.createSession(email, token, 60 * 60);
 
             // Send response
             res.status(200).json({
@@ -304,6 +294,15 @@ export default class AccountService {
                 return;
             }
 
+            // Get email from token
+            const email = await sessions.getEmail(token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'The email address associated with this token no longer exists',
+                });
+                return;
+            }
+
             // Check if password and confirm password match
             if (password !== confirmPassword) {
                 res.status(400).json({
@@ -312,21 +311,9 @@ export default class AccountService {
                 return;
             }
 
-            // Get email from token
-            const email = await sessions.getEmail(token);
-            if (!email) {
-                res.status(401).json({
-                    message: 'Invalid token',
-                });
-                return;
-            }
-
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -340,9 +327,14 @@ export default class AccountService {
             
             // Update password
             if (existingUser) {
-                await user.updatePassword(hashedPassword);
+                await existingUser.updatePassword(hashedPassword);
+            } else if (existingCorporate) {
+                await existingCorporate.updatePassword(hashedPassword);
             } else {
-                await corporate.updatePassword(hashedPassword);
+                res.status(404).json({
+                    message: 'Account not found',
+                });
+                return;
             }
 
             // Delete session
@@ -381,11 +373,8 @@ export default class AccountService {
             }
 
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -394,21 +383,27 @@ export default class AccountService {
                 return;
             }
 
+            // Delete session
+            await sessions.deleteSession(access_token);
+
             // Delete account
             if (existingUser) {
-                await user.delete();
+                await existingUser.delete();
+            } else if (existingCorporate) {
+                await existingCorporate.delete();
             } else {
-                await corporate.delete();
+                res.status(404).json({
+                    message: 'Account not found',
+                });
+                return;
             }
-
-            // Delete session
-            sessions.deleteSession(access_token);
 
             // Send response
             res.status(200).json({
                 message: 'Account deleted',
             });
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: 'Internal Server Error' });
         }
     }
@@ -437,11 +432,8 @@ export default class AccountService {
             }
 
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -450,17 +442,26 @@ export default class AccountService {
                 return;
             }
 
+            // get address
+            const address = await Address.getAddressByID(existingUser ? existingUser.addressID : existingCorporate ? existingCorporate.addressID : 0)
+            // get vehicles
+            const vehicles = await Vehicle.getAllByEmail(email);
+
             // Send response
             if (existingUser)   {
                 res.status(200).json({
                     message: 'User account found',
                     user: existingUser,
+                    address,
+                    vehicles,
                     isCorporateUser: false,
                 });
             } else {
                 res.status(200).json({
                     message: 'Corporate account found',
                     user: existingCorporate,
+                    address,
+                    vehicles,
                     isCorporateUser: true,
                 });
             }
@@ -493,11 +494,8 @@ export default class AccountService {
             }
 
             // Check account type
-            const user = new User('', '', '', '', 0, '', 0);
-            const existingUser = await user.findByEmail(email);
-            
-            const corporate = new Corporate('', '', '', 0, '', 0);
-            const existingCorporate = await corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -528,10 +526,59 @@ export default class AccountService {
                 });
             }
         } catch (error) {
+            console.log(error);
             res.status(500).json({ message: 'Internal Server Error' });
         }
     }
 
+    static async updateUser(req: Request, res: Response) {
+        try {
+            const { access_token, userProfile, userAddress } = req.body;
+            // get address
+            const address = new Address(userAddress.addressLineOne, userAddress.addressLineTwo, userAddress.postcode, userAddress.city, userAddress.country);
+            // create address
+            const addressID = await Address.create(address);
+
+            // get user
+            const user = new User(userProfile.forename, userProfile.surname, userProfile.email, userProfile.password, userProfile.roleID, userProfile.telephone, addressID);
+            user.update();
+
+            res.status(200).json({
+                message: 'User account updated',
+            });
+            
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
+    static async addVehicle(req: Request, res: Response) {
+        try {
+            const { access_token, vehicle } = req.body;
+
+            // get email
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // get vehicle
+            const toAdd = new Vehicle(vehicle.registration, vehicle.make, vehicle.model, vehicle.colour);
+            toAdd.create(email);
+
+            res.status(200).json({
+                message: 'Vehicle added',
+            });
+
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
 
     static async contact(req: Request, res: Response) {
         // get data from request

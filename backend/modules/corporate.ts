@@ -39,8 +39,6 @@ export class CorporateDAO {
 
     async create(corporate: Corporate): Promise<void> {
         const connection = await getConnection() as PoolConnection;
-
-        console.log(await corporate)
     
         try {
             await connection.query(
@@ -49,6 +47,33 @@ export class CorporateDAO {
             );
         }
         finally {
+            connection.release();
+        }
+    }
+
+    async update(corporate: Corporate): Promise<void> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            await connection.query(
+                'UPDATE profiles SET password = ?, roleID = ?, telephone = ?, addressID = ? WHERE email = ?;',
+                [corporate.password, corporate.roleID, corporate.telephone, corporate.addressID, corporate.email]
+            );
+        }
+        finally {
+            connection.release();
+        }
+    }
+
+    async delete(email: string): Promise<void> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            await connection.query(
+                'DELETE FROM profiles WHERE email = ?;',
+                [email]
+            );
+        } finally {
             connection.release();
         }
     }
@@ -79,7 +104,7 @@ export default class Corporate extends Profile {
         this.name = name;
     }
     
-    async findByEmail(email: string): Promise<Profile | null> {
+    static async findByEmail(email: string): Promise<Profile | null> {
         const profile = await new CorporateDAO().findByEmail(email);
         if (profile instanceof Corporate) {
             return profile;
@@ -91,8 +116,16 @@ export default class Corporate extends Profile {
         await super.updatePassword(password);
     }
 
-    async save(): Promise<void> {
+    async create(): Promise<void> {
         await new CorporateDAO().create(this);
+    }
+
+    async save(): Promise<void> {
+        await new CorporateDAO().update(this);
+    }
+
+    async delete(): Promise<void> {
+        await new CorporateDAO().delete(this.email);
     }
 
 }

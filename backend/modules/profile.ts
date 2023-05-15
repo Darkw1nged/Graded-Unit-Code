@@ -6,7 +6,7 @@ export class ProfileDAO {
 
     async create(profile: Profile): Promise<void> {
         const connection = await getConnection() as PoolConnection;
-    
+            
         try {
             await connection.query(
                 'INSERT INTO profiles (email, password, roleID, telephone, addressID) VALUES (?, ?, ?, ?, ?);',
@@ -41,6 +41,35 @@ export class ProfileDAO {
                 'DELETE FROM profiles WHERE email = ?;',
                 [email]
             );
+        } finally {
+            connection.release();
+        }
+    }
+
+    async getAllProfiles(): Promise<Profile[]> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query(
+                'SELECT * FROM profiles;'
+            );
+
+            return rows as Profile[];
+        } finally {
+            connection.release();
+        }
+    }
+
+    async getAllProfilesByDate(start: Date, end: Date): Promise<Profile[]> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query(
+                'SELECT * FROM profiles WHERE created_at BETWEEN ? AND ?;',
+                [start, end]
+            );
+
+            return rows as Profile[];
         } finally {
             connection.release();
         }
@@ -103,10 +132,15 @@ export default class Profile {
     setTelephone(telephone: string) {
         this.telephone = telephone;
     }
+
+    async create(): Promise<void> {
+        const profileDAO = new ProfileDAO();
+        await profileDAO.create(this);
+    }
     
     async save(): Promise<void> {
         const profileDAO = new ProfileDAO();
-        await profileDAO.create(this);
+        await profileDAO.update(this);
     }
 
     async update(): Promise<void> {
@@ -133,18 +167,22 @@ export default class Profile {
             if (typeof this.addressID !== 'number') {
                 reject(new Error('Invalid address ID'));
             } else {
-                const address = new Address('', '', '', '', '');
-                resolve(address.getAddressByID(this.addressID));
+                resolve(Address.getAddressByID(this.addressID));
             }
         });
     }
 
-    setAddress(address: Address): void {
-        // Implement this method to set the `addressID` field of this Profile instance
-        // based on the `id` field of the given `address` object.
-        // You can use the `save()` method from your AddressRepository to save the `address` object in the database
-        // and get its `id` value.
-        // After you get the `id` value, set the `addressID` field of this Profile instance.
+    static async getAllProfiles(): Promise<Profile[]> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getAllProfiles();
     }
+
+    static async getAllProfilesByDate(start: Date, end: Date): Promise<Profile[]> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getAllProfilesByDate(start, end);
+    }
+
+
+
 
 }
