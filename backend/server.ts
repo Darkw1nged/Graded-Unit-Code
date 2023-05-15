@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import AccountService from './AccountService';
 import BookingService from './BookingService';
+import AdminService from './AdminService';
 
 /**
  * Represents an Express server that listens for incoming requests.
@@ -74,11 +75,16 @@ class Server {
 
         this.app.post('/account/find', AccountService.findUser);
         this.app.post('/account/get/profile-details', AccountService.getProfileDetails);
+        this.app.post('/account/update', AccountService.updateUser);
+        this.app.post('/account/add-vehicle', AccountService.addVehicle);
 
         this.app.post('/contact', AccountService.contact);
 
         this.app.post('/search-booking', BookingService.searchBookings);
         this.app.post('/start-booking', BookingService.startBooking);
+
+        this.app.get('/admin/statistics', AdminService.getStatistics);
+        this.app.get('/admin/users', AdminService.getUsers);
     }
 
     private app: express.Application;
