@@ -26,7 +26,7 @@ export class UserDAO {
             const role = await Role.findById(roleID);
     
             if (role.name === 'Corporate') {
-                return new Corporate(profileRow.name, email, profileRow.password, roleID, profileRow.telephone, addressID);
+                return new Corporate(profileRow.businessName, email, profileRow.password, roleID, profileRow.telephone, addressID);
             } else if (role.name === 'Personal') {
                 return new User(profileRow.forename, profileRow.lastname, email, profileRow.password, roleID, profileRow.telephone, addressID);
             } else {

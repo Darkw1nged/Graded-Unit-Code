@@ -58,7 +58,7 @@ const Page = () => {
     const access_token = document.cookie.split("access_token=")[1]?.split(";")[0];
     const [userProfile, setUserProfile] = useState({
         email: '',
-        businessName: '',
+        name: '',
         forename: '',
         lastname: '',
         telephone: '',
@@ -104,7 +104,7 @@ const Page = () => {
         Model: '',
         Colour: ''
     });
-    let isCorporateUser = false;
+    let isCorporateUser = useState(false);
 
     useEffect(() => {
         const getUser = async () => {
@@ -125,7 +125,7 @@ const Page = () => {
                     isCorporateUser = response.isCorporateUser;
                 } else {
                     const response = await res.json();
-                    isCorporateUser = false;
+                    isCorporateUser = response.isCorporateUser;
                     console.error(`Error retrieving user profile: ${response.error}`);
                 }
             })
@@ -325,10 +325,15 @@ const Page = () => {
                             <h1>Account Settings</h1>
                             <form onSubmit={processForm}>
 
-                                <div className="compact">
-                                    <input type="text" name="forename" value={userProfile.forename || ''} onChange={handleInputChange} placeholder="First Name"/>
-                                    <input type="text" name="lastname" value={userProfile.lastname || ''} onChange={handleInputChange} placeholder="Last Name"/>
-                                </div>
+                                { isCorporateUser ? (
+                                    <input type="text" name="businessName" value={userProfile.name || ''} onChange={handleInputChange} placeholder="Business Name" required/>
+                                ) : (
+                                    <div className="compact">
+                                        <input type="text" name="forename" value={userProfile.forename || ''} onChange={handleInputChange} placeholder="First Name"/>
+                                        <input type="text" name="lastname" value={userProfile.lastname || ''} onChange={handleInputChange} placeholder="Last Name"/>
+                                    </div>
+                                )}
+
                                 <input type="text" name="telephone" value={userProfile.telephone || ''} onChange={handleInputChange} placeholder="Phone Number"/>
                                 <input type="password" name="password" placeholder="Current Password" required/>
 

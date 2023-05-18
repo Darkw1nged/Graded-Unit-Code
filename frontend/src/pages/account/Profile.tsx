@@ -47,7 +47,7 @@ fetch("http://localhost:5000/account/get/profile-details", {
         console.error("Error: " + res.status);
     } else {
         res.json().then(response => {
-            profile.BusinessName = response.user.BusinessName;
+            profile.BusinessName = response.user.name;
             profile.forename = response.user.forename;
             profile.lastname = response.user.lastname;
             profile.email = response.user.email;
@@ -97,7 +97,7 @@ const page = () => {
                 </div>
 
                 <div className="profile-info">
-                    <h1>{profile.forename + profile.lastname || 'There was an error getting your profile.'}</h1>
+                    <h1>{profile.forename + profile.lastname || profile.BusinessName || 'Profile not found.'}</h1>
                     <ul>
                         <li>Email: {profile.email || 'No email was found.'}</li>
                         <li>Telephone: {profile.telephone || 'No number was found.'}</li>
