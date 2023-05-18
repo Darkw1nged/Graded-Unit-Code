@@ -150,11 +150,10 @@ const createVehiclesTable = async () => {
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS vehicles (
         registration VARCHAR(255) PRIMARY KEY,
-        userEmail VARCHAR(255) UNIQUE NOT NULL,
+        userEmail VARCHAR(255) NOT NULL,
         make VARCHAR(255) NOT NULL,
         model VARCHAR(255) NOT NULL,
-        colour VARCHAR(255) NOT NULL,
-        FOREIGN KEY (userEmail) REFERENCES profiles(email)
+        colour VARCHAR(255) NOT NULL
       )
     `);
   } catch (err) {
@@ -238,11 +237,12 @@ const createPaymentsTable = async () => {
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS payments (
         paymentID INT AUTO_INCREMENT PRIMARY KEY,
-        bookingID INT NOT NULL,
-        payment_method VARCHAR(255) NOT NULL,
-        amount DECIMAL(10,2) NOT NULL,
-        FOREIGN KEY (bookingID) REFERENCES bookings(bookingID)
-      )
+        email VARCHAR(255) NOT NULL,
+        cardholder_name VARCHAR(255) NOT NULL,
+        card_expiry VARCHAR(7) NOT NULL,
+        card_number VARCHAR(16) NOT NULL,
+        cvv VARCHAR(4) NOT NULL
+      );
     `);
   } catch (err) {
     console.log('Error creating payments table', err);
@@ -252,12 +252,12 @@ const createPaymentsTable = async () => {
 };
 
 const createDefaultRoles = async () => {
-  await new Role(1, "Personal").save();
-  await new Role(2, "Corporate").save();
-  await new Role(3, "Invoices_Clerk").save();
-  await new Role(4, "Bookings_Clerk").save();
-  await new Role(5, "Manager").save();
-  await new Role(6, "Admin").save();
+  await new Role(1, "Personal").create();
+  await new Role(2, "Corporate").create();
+  await new Role(3, "Invoices_Clerk").create();
+  await new Role(4, "Bookings_Clerk").create();
+  await new Role(5, "Manager").create();
+  await new Role(6, "Admin").create();
 };
 
 const createDefaultUsers = async () => {
@@ -277,11 +277,10 @@ createBookingsTable();
 createPaymentsTable();
 
 console.log('(2/3) Creating default roles...');
-// Create the default roles
 // createDefaultRoles();
 
 console.log('(3/3) Creating default users...');
 // Create the default users
-createDefaultUsers();
+// createDefaultUsers();
 
 console.log('--- Database Setup Complete ---');

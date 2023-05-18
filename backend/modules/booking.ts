@@ -3,13 +3,13 @@ import { PoolConnection, RowDataPacket } from 'mysql2/promise';
 
 export class BookingDAO {
 
-    async save(booking: Booking): Promise<void> {
+    async create(userEmail: string, registration: string, booking: Booking): Promise<void> {
         const connection = await getConnection() as PoolConnection;
         try {
             await connection.execute(`
-                INSERT INTO bookings (spaceNumber, dateBooked, bookedFrom, bookedTo, carService, carValet, discount, cost, isCancelled)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [booking.getSpaceNumber(), booking.getDateBooked(), booking.getBookedFrom(), booking.getBookedTo(), booking.getCarService(), booking.getCarValet(), booking.getDiscount(), booking.getCost(), booking.getIsCancelled()]);
+                INSERT INTO bookings (userEmail, registration, spaceNumber, dateBooked, bookedFrom, bookedTo, carService, carValet, discount, cost, isCancelled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [userEmail, registration, booking.getSpaceNumber(), booking.getDateBooked(), booking.getBookedFrom(), booking.getBookedTo(), booking.getCarService(),
+                booking.getCarValet(), booking.getDiscount(), booking.getCost(), booking.getIsCancelled()]);
         } catch (err) {
             console.log('Error saving booking', err);
         } finally {
@@ -243,9 +243,9 @@ export default class Booking {
         this.isCancelled = isCancelled;
     }
 
-    async save(): Promise<void> {
+    async create(userEmail: string, registration: string): Promise<void> {
         const bookingDAO = new BookingDAO();
-        await bookingDAO.save(this);
+        await bookingDAO.create(userEmail, registration, this);
     }
 
     async update(): Promise<void> {

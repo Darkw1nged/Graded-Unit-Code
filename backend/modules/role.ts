@@ -7,8 +7,8 @@ class RoleDAO {
 
         try {
             await connection.query(
-            'INSERT INTO roles (roleID, name) VALUES (?, ?);',
-            [id, name]
+                'INSERT INTO roles (roleID, name) VALUES (?, ?);',
+                [id, name]
             );
         } finally {
             connection.release();
@@ -44,7 +44,7 @@ export default class Role {
         return this.name;
     }
 
-    async save(): Promise<void> {
+    async create(): Promise<void> {
         const dao = new RoleDAO();
         await dao.create(this.id, this.name);
     }

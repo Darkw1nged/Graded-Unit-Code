@@ -1,88 +1,116 @@
-/**
- * The payment class
- * @class
- * @memberof backend 
- * @description The payment class
- * @property {number} paymentNumber - The payment number
- * @property {string} cardType - The card type
- * @property {string} cardNumber - The card number
- * @property {number} amount - The amount
- * @property {Date} expiryDate - The expiry date
- * @property {string} securityNumber - The security number
- */
+import { getConnection } from '../database';
+import { PoolConnection } from 'mysql2/promise';
+
+export class PaymenteDAO {
+
+    async createPayment(email: string, payment: Payment): Promise<void> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            await connection.execute(`
+                INSERT INTO payments (email, cardholder_name, card_number, card_expiry, cvv)
+                VALUES (?, ?, ?, ?, ?)
+            `, [email, payment.getCardholderName(), payment.getCardNumber(), payment.getCardExpiry(), payment.getCVV()]);
+        } catch (error) {
+            console.log('Error creating payment', error);
+        } finally {
+            connection.release();
+        }
+    }
+
+    async getPayments(email: string): Promise<Payment[] | undefined> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.execute(`
+                SELECT * FROM payments WHERE email = ?
+            `, [email]);
+
+            return rows as Payment[];
+        } catch (error) {
+            console.log('Error getting payments', error);
+        } finally {
+            connection.release();
+        }
+    }
+
+    async removePayment(email: string, payment: Payment): Promise<void> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            await connection.execute(`
+                DELETE FROM payments WHERE email = ? AND card_number = ?
+            `, [email, payment.getCardNumber()]);
+        } catch (error) {
+            console.log('Error removing payment', error);
+        } finally {
+            connection.release();
+        }
+    }        
+
+}
+
 export default class Payment {
 
-    /**
-     * The payment number
-     * @type {number}
-     * @memberof Payment
-     * @description The payment number
-    */
-    paymentNumber: number;
-
-    /**
-     * The card type
-     * @type {string}
-     * @private
-     * @memberof Payment
-     * @description The card type
-     */
-    private cardType: string;
-
-    /**
-     * The card number
-     * @type {string}
-     * @private
-     * @memberof Payment
-     * @description The card number
-     */
-    private cardNumber: string;
-
-    /**
-     * The amount
-     * @type {number}
-     * @private
-     * @memberof Payment
-     * @description The amount
-     */
-    private amount: number;
-
-    /**
-     * The expiry date
-     * @type {Date}
-     * @private
-     * @memberof Payment
-     * @description The expiry date
-     */
-    private expiryDate: Date;
-
-    /**
-     * The security number
-     * @type {string}
-     * @private
-     * @memberof Payment
-     * @description The security number
-     */
-    private securityNumber: string;
-
-    /**
-     * the constructor for the payment class
-     * @param {number} paymentNumber - The payment number
-     * @param {string} cardType - The card type
-     * @param {string} cardNumber - The card number
-     * @param {number} amount - The amount
-     * @param {Date} expiryDate - The expiry date
-     * @param {string} securityNumber - The security number
-     * @memberof Payment
-     * @description The constructor for the payment class
-     */
-    constructor(paymentNumber: number, cardType: string, cardNumber: string, amount: number, expiryDate: Date, securityNumber: string) {
-        this.paymentNumber = paymentNumber;
-        this.cardType = cardType;
-        this.cardNumber = cardNumber;
-        this.amount = amount;
-        this.expiryDate = expiryDate;
-        this.securityNumber = securityNumber;
+    cardholder_name: string;
+    card_number: string;
+    card_expiry: string;
+    cvv: string;
+    
+    constructor(cardholder_name: string, card_number: string, card_expiry: string, cvv: string) {
+        this.cardholder_name = cardholder_name;
+        this.card_number = card_number;
+        this.card_expiry = card_expiry;
+        this.cvv = cvv;
     }
+
+    getCardholderName(): string {
+        return this.cardholder_name;
+    }
+
+    setCardholderName(cardholder_name: string) {
+        this.cardholder_name = cardholder_name;
+    }
+
+    getCardNumber(): string {
+        return this.card_number;
+    }
+
+    setCardNumber(card_number: string) {
+        this.card_number = card_number;
+    }
+
+    getCardExpiry(): string {
+        return this.card_expiry;
+    }
+
+    setCardExpiry(card_expiry: string) {
+        this.card_expiry = card_expiry;
+    }
+
+    getCVV(): string {
+        return this.cvv;
+    }
+
+    setCVV(cvv: string) {
+        this.cvv = cvv;
+    }
+
+    async create(email: string) {
+        const paymentDAO = new PaymenteDAO();
+        await paymentDAO.createPayment(email, this);
+    }
+
+    static async getPayments(email: string): Promise<Payment[] | undefined> {
+        const paymentDAO = new PaymenteDAO();
+        return await paymentDAO.getPayments(email);
+    }
+
+    async delete(email: string) {
+        const paymentDAO = new PaymenteDAO();
+        await paymentDAO.removePayment(email, this);
+    }
+
+
 
 }

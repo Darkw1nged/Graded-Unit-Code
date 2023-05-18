@@ -56,6 +56,19 @@ export class AddressDAO {
         }
     }
 
+    async updateAddress(address: Address): Promise<void> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            await connection.query<OkPacket>(
+                'UPDATE addresses SET addressLineOne=?, addressLineTwo=?, postcode=?, city=?, country=? WHERE postcode=?;',
+                [address.getAddressLineOne(), address.getAddressLineTwo(), address.getPostcode(), address.getCity(), address.getCountry(), address.getPostcode()]
+            );
+        } finally {
+            connection.release();
+        }
+    }
+
 }
 
 export default class Address {
@@ -137,6 +150,11 @@ export default class Address {
     static create(address: Address): Promise<number> {
         const addressDAO = new AddressDAO();
         return addressDAO.createAddress(address);
+    }
+
+    async update(): Promise<void> {
+        const addressDAO = new AddressDAO();
+        return addressDAO.updateAddress(this);
     }
 
 }

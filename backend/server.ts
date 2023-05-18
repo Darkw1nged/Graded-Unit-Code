@@ -1,10 +1,15 @@
-import express from 'express';
+import express, { Request, Response } from "express";
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import AccountService from './AccountService';
 import BookingService from './BookingService';
 import AdminService from './AdminService';
+import config from "./config";
+
+interface RequestBody {
+    amount: number
+}
 
 /**
  * Represents an Express server that listens for incoming requests.
@@ -25,6 +30,8 @@ class Server {
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.app.use(cors());
     }
+    
+    stripe = require('stripe')(config.stripeKey);
 
     /**
      * Loads environment variables from the .env file.
@@ -77,16 +84,42 @@ class Server {
         this.app.post('/account/get/profile-details', AccountService.getProfileDetails);
         this.app.post('/account/update', AccountService.updateUser);
         this.app.post('/account/add-vehicle', AccountService.addVehicle);
+        this.app.post('/account/delete-vehicle', AccountService.removeVehicle);
+        this.app.post('/account/add-payment', AccountService.addPayment);
+        this.app.post('/account/delete-payment', AccountService.removePayment);
 
         this.app.post('/contact', AccountService.contact);
 
         this.app.post('/search-booking', BookingService.searchBookings);
         this.app.post('/start-booking', BookingService.startBooking);
+        this.app.post('/booking/create', BookingService.createBooking);
+
 
         this.app.get('/admin/statistics', AdminService.getStatistics);
         this.app.get('/admin/users', AdminService.getUsers);
         this.app.get('/admin/get/staff', AdminService.getStaff);
         this.app.get('/admin/get/customers', AdminService.getCustomers);
+        this.app.post('/admin/get/customer', AdminService.getCustomer);
+        this.app.post('/admin/get/customer-address', AdminService.getCustomerAddresses);
+        this.app.post('/admin/get/customer-vehicles', AdminService.getCustomerVehicles);
+        this.app.post('/admin/update/customer', AdminService.updateCustomer);
+        this.app.post('/admin/update/customer-vehicle', AdminService.updateCustomerVehicle);
+
+        this.app.post('/secret', async (req: Request, res: Response) => {
+            const { amount }:RequestBody = req.body;
+        
+            try {
+                const intent = await this.stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: 'gbp',
+                    automatic_payment_methods: {enabled: true},
+                });
+        
+                res.json({ client_secret: intent.client_secret });
+            } catch (error) {
+                console.log(error);
+            }
+        });
     }
 
     private app: express.Application;

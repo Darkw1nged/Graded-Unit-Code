@@ -1,5 +1,5 @@
 import { getConnection } from '../database';
-import { PoolConnection } from 'mysql2/promise';
+import { OkPacket, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import Address from './address';
 
 export class ProfileDAO {
@@ -55,6 +55,21 @@ export class ProfileDAO {
             );
 
             return rows as Profile[];
+        } finally {
+            connection.release();
+        }
+    }
+
+    async getProfileByEmail(email: string): Promise<Profile | undefined> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query<RowDataPacket[]>(
+                'SELECT * FROM profiles WHERE email = ?;',
+                [email]
+            );
+
+            return rows[0] as Profile;
         } finally {
             connection.release();
         }
@@ -210,6 +225,11 @@ export default class Profile {
     static async getAllProfilesByDate(start: Date, end: Date): Promise<Profile[]> {
         const profileDAO = new ProfileDAO();
         return await profileDAO.getAllProfilesByDate(start, end);
+    }
+
+    static async getProfileByEmail(email: string): Promise<Profile | undefined> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getProfileByEmail(email);
     }
 
     static async getAllStaff(): Promise<Profile[]> {

@@ -23,9 +23,9 @@ const vehicle = {
 
 let booking = {
     spaceNumber: "",
-    dateBooked: "",
-    bookedFrom: "",
-    bookedTo: "",
+    dateBooked: '',
+    bookedFrom: '',
+    bookedTo: '',
     cost: "",
     isCancelled: ""
 }
@@ -128,9 +128,9 @@ const page = () => {
                         { bookings.length > 0 ? bookings.map(booking => (
                             <tr className="item">
                                 <td>{booking.spaceNumber}</td>
-                                <td>{booking.dateBooked}</td>
-                                <td>{booking.bookedFrom}</td>
-                                <td>{booking.bookedTo}</td>
+                                <td>{new Date(booking.dateBooked).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                                <td>{new Date(booking.bookedFrom).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                <td>{new Date(booking.bookedTo).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                                 <td>£{booking.cost}</td>
 
                                 <td>

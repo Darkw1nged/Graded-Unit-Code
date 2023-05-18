@@ -45,6 +45,13 @@ interface Vehicle {
     colour: string;
 }
 
+interface Payment {
+    cardholder_name: string;
+    card_number: string;
+    card_expiry: string;
+    cvv: string;
+}
+
 const Page = () => {
     redirectIfNotLoggedIn();
 
@@ -70,7 +77,14 @@ const Page = () => {
         model: '',
         colour: ''
     })
+    const [payment, setPayment] = useState({
+        cardholder_name: '',
+        card_number: '',
+        card_expiry: '',
+        cvv: ''
+    })
 
+    const [userPayments, setUserPayments] = useState<Payment[]>([]);
     const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
     const isLoggedIn = document.cookie.includes('access_token');
     const [formValues] = useState({
@@ -107,6 +121,7 @@ const Page = () => {
                     await setUserProfile(response.user);
                     await setUserAddress(response.address);
                     await setUserVehicles(response.vehicles);
+                    await setUserPayments(response.payments);
                     isCorporateUser = response.isCorporateUser;
                 } else {
                     const response = await res.json();
@@ -140,6 +155,13 @@ const Page = () => {
         const { name, value } = event.target;
         setVehicle(prevVehicle => ({
             ...prevVehicle,
+            [name]: value,
+        }));
+    }
+    const handlePaymentInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setPayment(prevPayment => ({
+            ...prevPayment,
             [name]: value,
         }));
     }
@@ -189,6 +211,7 @@ const Page = () => {
             if (res.status === 200) {
                 const response = await res.json();
                 console.log(response);
+                window.location.reload()
             } else {
                 const response = await res.json();
                 console.error(`Error adding vehicle: ${response.error}`);
@@ -196,6 +219,90 @@ const Page = () => {
         })
         .catch(error => {
             console.error("Failed to add vehicle: " + error);
+        });
+    }
+
+    const addPayment = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/account/add-payment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                access_token: access_token,
+                payment: payment
+            })
+        })
+        .then(async res =>{
+            if (res.status === 200) {
+                const response = await res.json();
+                console.log(response);
+                window.location.reload()
+            } else {
+                const response = await res.json();
+                console.error(`Error adding payment: ${response.error}`);
+            }
+        })
+        .catch(error => {
+            console.error("Failed to add payment: " + error);
+        });
+    }
+
+    const deleteVehicle = (vehicle: Vehicle) => async (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/account/delete-vehicle", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                access_token: access_token,
+                vehicle: vehicle
+            })
+        })
+        .then(async res =>{
+            if (res.status === 200) {
+                const response = await res.json();
+                console.log(response);
+                window.location.reload()
+            } else {
+                const response = await res.json();
+                console.error(`Error deleting vehicle: ${response.error}`);
+            }
+        })
+        .catch(error => {
+            console.error("Failed to delete vehicle: " + error);
+        });
+    }
+
+    const deletePayment = (payment: Payment) => async (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/account/delete-payment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                access_token: access_token,
+                payment: payment
+            })
+        })
+        .then(async res =>{
+            if (res.status === 200) {
+                const response = await res.json();
+                console.log(response);
+                window.location.reload()
+            } else {
+                const response = await res.json();
+                console.error(`Error deleting payment: ${response.error}`);
+            }
+        })
+        .catch(error => {
+            console.error("Failed to delete payment: " + error);
         });
     }
 
@@ -493,8 +600,7 @@ const Page = () => {
                                             <td>{vehicle.colour}</td>
                                             
                                             <td>
-                                                <a>View</a>
-                                                <a>
+                                                <a href="" onClick={deleteVehicle(vehicle)}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
                                                         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
                                                         <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
@@ -518,17 +624,17 @@ const Page = () => {
                         <div className="form">
                             <h1>Payment Information</h1>
 
-                            <form>
-                                <input type="text" name="cardholder" placeholder="Cardholder Name"/>
-                                <input type="text" name="cardNumber" placeholder="Card Number"/>
+                            <form onSubmit={addPayment}>
+                                <input type="text" name="cardholder_name" placeholder="Cardholder Name" value={payment.cardholder_name} onChange={handlePaymentInputChange} required />
+                                <input type="text" name="card_number" placeholder="Card Number" value={payment.card_number} onChange={handlePaymentInputChange} required />
 
                                 <div className="compact"> 
                                     {/* <input type="month" name="expiry"/> */}
-                                    <input type="text" name="expiry" placeholder="Expiry Date (MM/YY)"/>
-                                    <input type="text" name="cvv" placeholder="CVV/CVC"/>
+                                    <input type="text" name="card_expiry" placeholder="Expiry Date (MM/YY)" value={payment.card_expiry} onChange={handlePaymentInputChange} required />
+                                    <input type="text" name="cvv" placeholder="CVV/CVC" value={payment.cvv} onChange={handlePaymentInputChange} required />
                                 </div>
 
-                                <input type="submit" value="Update" />
+                                <input type="submit" value="Add" />
                             </form>
                         </div>
 
@@ -547,16 +653,26 @@ const Page = () => {
                                 </thead>
 
                                 <tbody>
-                                    <tr className="item">
-                                        <td>John Smith</td>
-                                        <td>**** **** **** 1234</td>
-                                        <td>01/2021</td>
-                                        <td>123</td>
-                                        <td>
-                                            <a>Edit</a>
-                                            <a>Delete</a>
-                                        </td>
-                                    </tr>
+                                    { userPayments !== undefined && userPayments.length > 0 ? userPayments.map(payment => (
+                                        <tr className="item">
+                                            <td>{payment.cardholder_name}</td>
+                                            <td>{payment.card_number}</td>
+                                            <td>{payment.card_expiry}</td>
+                                            <td>{payment.cvv}</td>
+                                            <td>
+                                                <a href="" onClick={deletePayment(payment)}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
+                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
+                                                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
+                                                    </svg>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr className="item">
+                                            <td colSpan={5}>No cards found</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
