@@ -10,6 +10,7 @@ import User from './modules/user';
 import Vehicle from './modules/vehicles';
 import Booking from './modules/booking';
 import Address from './modules/address';
+import Payment from './modules/payments';
 
 export default class AccountService {
 
@@ -351,7 +352,7 @@ export default class AccountService {
 
     static async deleteAccount(req: Request, res: Response) {
         try {
-            const { access_token } = req.body;
+            const { access_token, email } = req.body;
 
             // Check if token is valid
             const decoded = await sessions.verifyToken(access_token);
@@ -364,17 +365,19 @@ export default class AccountService {
             }
 
             // Get email from token
-            const email = await sessions.getEmail(access_token);
-            if (!email) {
+            const tokenemail = await sessions.getEmail(access_token);
+            if (!tokenemail) {
                 res.status(401).json({
                     message: 'Invalid token',
                 });
                 return;
             }
 
+            const actualEmail = tokenemail ? tokenemail : email;
+
             // Check account type
-            const existingUser = await User.findByEmail(email);
-            const existingCorporate = await Corporate.findByEmail(email);
+            const existingUser = await User.findByEmail(actualEmail);
+            const existingCorporate = await Corporate.findByEmail(actualEmail);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -448,6 +451,8 @@ export default class AccountService {
             const address = await Address.getAddressByID(existingUser ? existingUser.addressID : existingCorporate ? existingCorporate.addressID : 0)
             // get vehicles
             const vehicles = await Vehicle.getAllByEmail(email);
+            // get payments
+            const payments = await Payment.getPayments(email);
 
             // Send response
             if (existingUser)   {
@@ -456,6 +461,7 @@ export default class AccountService {
                     user: existingUser,
                     address,
                     vehicles,
+                    payments,
                     isCorporateUser: false,
                 });
             } else {
@@ -464,6 +470,7 @@ export default class AccountService {
                     user: existingCorporate,
                     address,
                     vehicles,
+                    payments,
                     isCorporateUser: true,
                 });
             }
@@ -581,6 +588,113 @@ export default class AccountService {
             res.status(500).json({ message: 'Internal Server Error' });
         }
     }
+    
+    static async getUserPayments(req: Request, res: Response) {
+        try {
+            const { access_token } = req.body;
+
+            // get email
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // get payments
+            const payments = await Payment.getPayments(email);
+
+            res.status(200).json({
+                message: 'Payments found',
+                payments
+            });
+
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }       
+    
+    static async addPayment(req: Request, res: Response) {
+        try {
+            const { access_token, payment } = req.body;
+
+            // get email
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // get payment
+            const toAdd = new Payment(payment.cardholder_name, payment.card_number, payment.card_expiry, payment.cvv);
+            toAdd.create(email);
+
+            res.status(200).json({
+                message: 'Payment added',
+            });
+            
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
+    static async removePayment(req: Request, res: Response) {
+        try {
+            const { access_token, payment } = req.body;
+
+            // get email
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // get payment
+            const toRemove = new Payment(payment.cardholder_name, payment.card_number, payment.card_expiry, payment.cvv);
+            toRemove.delete(email);
+
+            res.status(200).json({
+                message: 'Payment removed',
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
+    static async removeVehicle(req: Request, res: Response) {
+        try {
+            const { access_token, vehicle } = req.body;
+
+            // get email
+            const email = await sessions.getEmail(access_token);
+            if (!email) {
+                res.status(401).json({
+                    message: 'Invalid token',
+                });
+                return;
+            }
+
+            // get vehicle
+            const toRemove = new Vehicle(vehicle.registration, vehicle.make, vehicle.model, vehicle.colour);
+            toRemove.delete();
+
+            res.status(200).json({
+                message: 'Vehicle removed',
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        }
+    }
+
 
     static async contact(req: Request, res: Response) {
         // get data from request
