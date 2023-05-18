@@ -513,8 +513,6 @@ export default class AccountService {
                 return;
             }
 
-            console.log(existingCorporate);
-
             const vehicles = await Vehicle.getAllByEmail(email);
             const bookings = await Booking.getBookingsByUser(email);
 
