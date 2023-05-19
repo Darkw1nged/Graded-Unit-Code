@@ -73,6 +73,20 @@ export default class Sessions {
         }
     }
 
+    static async deleteAllTokens(email: string) {
+        // Get a connection from the pool
+        const connection = await getConnection() as PoolConnection;
+
+        // Try and query the database
+        try {
+            // Query the database
+            await connection.query('DELETE FROM sessions WHERE email=?', [email]);
+        } finally {
+            // Release the connection
+            connection.release();
+        }
+    }
+
     /**
      * @memberof Sessions
      * @description Gets the email of a user from a token.

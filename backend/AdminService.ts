@@ -6,7 +6,6 @@ import Address from './modules/address';
 import Vehicle from './modules/vehicles';
 import User from './modules/user';
 import sessions from './modules/sessions';
-import Role from './modules/role';
 
 export default class AccountService {
 
@@ -22,10 +21,19 @@ export default class AccountService {
             const totalBookings = bookings.length;
             const totalRevenue = bookings.reduce((total, booking) => total + booking.cost, 0);
 
+            // format revenue
+            const formatter = new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP',
+                minimumFractionDigits: 2
+            });
+
+            const formattedRevenue = formatter.format(totalRevenue) == "£NaN" ? "0.00" : formatter.format(totalRevenue);
+
             res.status(200).json({
                 members: totalMembers,
                 bookings: totalBookings,
-                sales: totalRevenue
+                sales: formattedRevenue
             });
 
         } catch (error) {

@@ -354,30 +354,34 @@ export default class AccountService {
         try {
             const { access_token, email } = req.body;
 
-            // Check if token is valid
-            const decoded = await sessions.verifyToken(access_token);
+            let actualEmail = email;
+            let tokenProvided = false;
 
-            if (!decoded) {
-                res.status(401).json({
-                    message: 'Invalid token',
-                });
-                return;
+            if (access_token !== undefined) {
+                // Check if token is valid
+                const decoded = await sessions.verifyToken(access_token);
+
+                if (!decoded) {
+                    res.status(401).json({
+                        message: 'Invalid token',
+                    });
+                    return;
+                }
+
+                // Get email from token
+                actualEmail = await sessions.getEmail(access_token);
+                if (!actualEmail) {
+                    res.status(401).json({
+                        message: 'Invalid token',
+                    });
+                    return;
+                }
+                tokenProvided = true;
             }
-
-            // Get email from token
-            const tokenemail = await sessions.getEmail(access_token);
-            if (!tokenemail) {
-                res.status(401).json({
-                    message: 'Invalid token',
-                });
-                return;
-            }
-
-            const actualEmail = tokenemail ? tokenemail : email;
 
             // Check account type
-            const existingUser = await User.findByEmail(actualEmail);
-            const existingCorporate = await Corporate.findByEmail(actualEmail);
+            const existingUser = await User.findByEmail(email);
+            const existingCorporate = await Corporate.findByEmail(email);
 
             if (existingUser == null && existingCorporate == null) {
                 res.status(404).json({
@@ -386,8 +390,13 @@ export default class AccountService {
                 return;
             }
 
-            // Delete session
-            await sessions.deleteSession(access_token);
+            if (tokenProvided) {
+                // Delete session
+                await sessions.deleteSession(access_token);
+            } else {
+                // Delete all sessions
+                await sessions.deleteAllTokens(actualEmail);
+            }
 
             // Delete account
             if (existingUser) {
