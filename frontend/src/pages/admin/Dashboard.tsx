@@ -1,9 +1,11 @@
 import '../../style/admin-dash.css'
-import { redirectIfNotLoggedIn } from '../../components/redirects';
+import { redirectIfNotLoggedIn, redirectIfNoAdmins } from '../../components/redirects';
 import { useEffect, useState } from 'react';
 
 const Dashboard = () => {
     redirectIfNotLoggedIn();
+    redirectIfNoAdmins();
+
 
     const [profilesList, setProfilesList] = useState([{
         businessName: '',

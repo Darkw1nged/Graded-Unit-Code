@@ -99,6 +99,8 @@ class Server {
         this.app.get('/admin/users', AdminService.getUsers);
         this.app.get('/admin/get/staff', AdminService.getStaff);
         this.app.get('/admin/get/customers', AdminService.getCustomers);
+        this.app.get('/admin/get/admins', AdminService.getAdmins);
+        this.app.post('/admin/protection', AdminService.protectRoute);
         this.app.post('/admin/get/customer', AdminService.getCustomer);
         this.app.post('/admin/get/customer-address', AdminService.getCustomerAddresses);
         this.app.post('/admin/get/customer-vehicles', AdminService.getCustomerVehicles);

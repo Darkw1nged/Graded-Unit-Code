@@ -27,10 +27,8 @@ export class UserDAO {
     
             if (role.name === 'Corporate') {
                 return new Corporate(profileRow.businessName, email, profileRow.password, roleID, profileRow.telephone, addressID);
-            } else if (role.name === 'Personal') {
-                return new User(profileRow.forename, profileRow.lastname, email, profileRow.password, roleID, profileRow.telephone, addressID);
             } else {
-                throw new Error(`Profile with email ${email} has an invalid role.`);
+                return new User(profileRow.forename, profileRow.lastname, email, profileRow.password, roleID, profileRow.telephone, addressID);
             }
         } finally {
             connection.release();
@@ -119,7 +117,7 @@ export default class User extends Profile {
         return `${this.forename} ${this.lastname}`;
     }
 
-    static async findByEmail(email: string): Promise<Profile | null> {
+    static async findByEmail(email: string): Promise<User | null> {
         const profile = await new UserDAO().findByEmail(email);
         if (profile instanceof User) {
             return profile;

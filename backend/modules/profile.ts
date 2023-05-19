@@ -120,6 +120,21 @@ export class ProfileDAO {
         }
     }
 
+    async getAllAdmins(): Promise<Profile[]> {
+        const connection = await getConnection() as PoolConnection;
+
+        try {
+            const [rows] = await connection.query(
+                'SELECT * FROM profiles WHERE roleID = 6;'
+            );
+
+            return rows as Profile[];
+        }
+        finally {
+            connection.release();
+        }
+    }
+
 }
 
 export default class Profile {
@@ -240,6 +255,11 @@ export default class Profile {
     static async getAllCustomers(): Promise<Profile[]> {
         const profileDAO = new ProfileDAO();
         return await profileDAO.getAllCustomers();
+    }
+
+    static async getAllAdmins(): Promise<Profile[]> {
+        const profileDAO = new ProfileDAO();
+        return await profileDAO.getAllAdmins();
     }
 
 }

@@ -9,3 +9,24 @@ export function redirectIfNotLoggedIn(): void {
         window.location.href = "/account/login";
     }
 }
+
+export function redirectIfNoAdmins(): void {
+    fetch("http://localhost:5000/admin/get/admins", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    .then((res) => {
+        if (res.status === 200) {
+            res.json().then((response) => {
+                if (response.admins === undefined || response.admins.length === 0) {
+                    window.location.href = "/admin/protection";
+                }
+            });
+        }
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+}

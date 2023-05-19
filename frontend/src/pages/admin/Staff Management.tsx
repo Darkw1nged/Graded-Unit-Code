@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { redirectIfNotLoggedIn, redirectIfNoAdmins } from '../../components/redirects';
 
 import '../../style/admin-staff.css'
 
@@ -12,6 +13,9 @@ interface Profile {
 }
 
 const Page = () => {
+    redirectIfNotLoggedIn();
+    redirectIfNoAdmins();
+    
     const [optionsVisible, setOptionsVisible] = useState(false);
 
     const showOptions = () => {

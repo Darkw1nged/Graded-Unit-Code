@@ -1,4 +1,4 @@
-import { redirectIfNotLoggedIn } from '../../components/redirects';
+import { redirectIfNotLoggedIn, redirectIfNoAdmins } from '../../components/redirects';
 import { MouseEventHandler, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -15,6 +15,7 @@ interface Profile {
 
 const Page = () => {
     redirectIfNotLoggedIn();
+    redirectIfNoAdmins();
 
     const [profiles, setProfiles] = useState<Profile[]>([]);
 
