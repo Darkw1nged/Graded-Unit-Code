@@ -1,24 +1,22 @@
 import '../../style/admin-dash.css'
-import { redirectIfNotLoggedIn, redirectIfNoAdmins } from '../../components/redirects';
+import { notSignedIn, protectRoute } from '../../components/redirects';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Dashboard = () => {
-    redirectIfNotLoggedIn();
-    redirectIfNoAdmins();
+interface User {
+    email: string;
+    telephone?: string;
+    created_at: Date;
+    suspended?: boolean;
+}
 
+const Page = () => {
+    notSignedIn();
+    protectRoute();
 
-    const [profilesList, setProfilesList] = useState([{
-        businessName: '',
-        forename: '',
-        lastname: '',
-        created_at: '',
-        email: '',
-        telephone: '',
-    }]);
-
+    const [users, SetUsers] = useState<User[]>([]);
     useEffect(() => {
-        fetch('http://localhost:5000/admin/users', {
+        fetch('http://localhost:5000/api/v1/users', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,7 +25,7 @@ const Dashboard = () => {
         .then(res => {
             if (res.status === 200) {
                 res.json().then(response => {
-                    setProfilesList(response);
+                    SetUsers(response.users);
                 })
             } else {
                 res.json().then(response => {
@@ -42,22 +40,51 @@ const Dashboard = () => {
 
     const [statistics, setStatistics] = useState({
         sales: 0,
-        members: 0,
-        bookings: 0,
-        spaces: 0,
+        users: 0,
+        bookings: 0
     });
-
+    const [oldStatistics, setOldStatistics] = useState({
+        sales: 0,
+        users: 0,
+        bookings: 0
+    });
     useEffect(() => {
-        fetch('http://localhost:5000/admin/statistics', {
-            method: 'GET',
+        fetch('http://localhost:5000/api/v1/admin/dashboard/statistics', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ date: new Date() })
         })
         .then(res => {
             if (res.status === 200) {
+                res.json().then(async response => {
+                    await setStatistics(response);
+                })
+            } else {
                 res.json().then(response => {
-                    setStatistics(response);
+                    console.log(response.message);
+                })
+            }
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+
+        const date = new Date();
+        date.setMonth(date.getMonth() - 1);
+
+        fetch('http://localhost:5000/api/v1/admin/dashboard/statistics', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ date: new Date().setMonth(new Date().getMonth() - 1) })
+        })
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(async response => {
+                    await setOldStatistics(response);
                 })
             } else {
                 res.json().then(response => {
@@ -70,23 +97,114 @@ const Dashboard = () => {
         });
     }, []);
 
+    const [spaces, setSpaces] = useState<number>(150);
+    useEffect(() => {
+        fetch('http://localhost:5000/api/v1/prices', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(response => {
+                    setSpaces(response.spaces_available);
+                })
+            } else {
+                res.json().then(response => {
+                    console.log(response.message);
+                })
+            }
+        })
+        .catch((error) => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+    }, []);
+
+    function calculateDifference(currentStats: any, oldStats: any) {
+        const percentageChange: Record<string, number> = {};
+
+        for (const key in currentStats) {
+            if (currentStats.hasOwnProperty(key)) {
+                const currentValue = currentStats[key];
+                const oldValue = oldStats ? oldStats[key] : 0;
+
+                if (currentValue === oldValue) {
+                    percentageChange[key] = 0;
+                } else {
+                    const change = currentValue - oldValue;
+                    const percentage = (change / (oldValue || 1)) * 100;
+                    percentageChange[key] = Math.round(percentage);
+                }
+            }
+        }
+
+        return percentageChange;
+    }
+    const changes = calculateDifference(statistics, oldStatistics);
+    const compare = document.querySelectorAll(".compare");
+    compare.forEach((div) => {
+        const span = div.querySelector("span");
+        if (span) {
+            if (span.id === "users-value") {
+                if (changes.users > 0) {
+                    compare[1].classList.remove("even");
+                    compare[1].classList.add("up");
+                    span.innerText = "🠉 " + changes.users + "%";
+                } else if (changes.users < 0) {
+                    compare[1].classList.remove("even");
+                    compare[1].classList.add("down");
+                    span.innerText = "🠋 " + changes.users + "%";
+                } else {
+                    compare[1].classList.add("even");
+                    span.innerText = "- 0%";
+                }
+            } else if (span.id === "bookings-value") {
+                if (changes.bookings > 0) {
+                    compare[2].classList.remove("even");
+                    compare[2].classList.add("up");
+                    span.innerText = "🠉 " + changes.bookings + "%";
+                } else if (changes.bookings < 0) {
+                    compare[2].classList.remove("even");
+                    compare[2].classList.add("down");
+                    span.innerText = "🠋 " + changes.bookings + "%";
+                } else {
+                    compare[2].classList.add("even");
+                    span.innerText = "- 0%";
+                }
+            } else if (span.id === "sales-value") {
+                if (changes.sales > 0) {
+                    compare[0].classList.remove("even");
+                    compare[0].classList.add("up");
+                    span.innerText = "🠉 " + changes.sales + "%";
+                } else if (changes.sales < 0) {
+                    compare[0].classList.remove("even");
+                    compare[0].classList.add("down");
+                    span.innerText = "🠋 " + changes.sales + "%";
+                } else {
+                    compare[0].classList.add("even");
+                    span.innerText = "- 0%";
+                }
+            }
+        }
+    });
+
     const deleteAccount = (email: string) => {
-        fetch("http://localhost:5000/account/delete", {
-            method: "post",
+        fetch("http://localhost:5000/api/v1/users/delete", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                email: email,
-            }),
+            body: JSON.stringify({ email })
         })
-        .then(res => {
+        .then(async res => {
             if (res.status !== 200) {
-                console.error("Error: " + res.status);
+                const response = await res.json();
+                console.error(`Error deleting user: ${response.error}`);
             }
         })
         .catch(error => {
-            console.error("Failed to delete account: " + error);
+            console.error("Failed to delete user: " + error);
         });
     }
 
@@ -107,8 +225,8 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="compare up">
-                        <span> 🠉 13%</span>
+                    <div className="compare">
+                        <span id="sales-value"></span>
                         <p>Since last month</p>
                     </div>
                 </div>
@@ -116,7 +234,7 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Members</p>
-                            <h2>{statistics.members || 0}</h2>
+                            <h2>{statistics.users || 0}</h2>
                         </div>
                         <div className="bubble">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-people" viewBox="0 0 16 16">
@@ -125,8 +243,8 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="compare up">
-                        <span> 🠉 30%</span>
+                    <div className="compare">
+                        <span id="users-value"></span>
                         <p>Since last month</p>
                     </div>
                 </div>
@@ -149,8 +267,8 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="compare down">
-                        <span> 🠋 5%</span>
+                    <div className="compare">
+                        <span id="bookings-value"></span>
                         <p>Since last month</p>
                     </div>
                 </div>
@@ -159,7 +277,7 @@ const Dashboard = () => {
                     <div className="header">
                         <div className="values">
                             <p>Spaces Available </p>
-                            <h2>{statistics.spaces || 150}</h2>
+                            <h2>{spaces || 150}</h2>
                         </div>
                         <div className="bubble">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -175,33 +293,29 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="users">
+            <div className="data">
                 <h1>New Users</h1>
                 <table>
                     <thead>
                         <tr className="heading">
-                            <th>Name</th>
-                            <th>Registered</th>
                             <th>Email</th>
+                            <th>Registered</th>
                             <th>Phone</th>
+                            <th>Suspended</th>
                             <th></th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        { profilesList.length > 0 ? profilesList.map((profile) => (
-                            <tr className="user" key={profile.email}>
-                                { profile.businessName ? (
-                                    <td>{profile.businessName}</td>
-                                ) : (
-                                    <td>{profile.forename} {profile.lastname}</td>
-                                )}
-                                <td>{new Date(profile.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                                <td>{profile.email}</td>
-                                <td>{profile.telephone}</td>
+                        { users.length > 0 ? users.map((users) => (
+                            <tr className="user" key={users.email}>
+                                <td>{users.email}</td>
+                                <td>{new Date(users.created_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                <td>{users.telephone}</td>
+                                <td>{users.suspended === false || !users.suspended ? "No" : "Yes" }</td>
                                 <td>
-                                    <Link to={"/admin/members/user-edit?email=" + profile.email}>Edit</Link>
-                                    <a onClick={() => deleteAccount(profile.email)}>
+                                    <Link to={"/admin/edit/user?email=" + users.email}>Edit</Link>
+                                    <a onClick={() => deleteAccount(users.email)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
                                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
                                             <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 
@@ -222,4 +336,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Page;

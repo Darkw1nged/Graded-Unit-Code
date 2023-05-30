@@ -172,15 +172,6 @@
     padding: 10px 20px;
 }
 
-.profile-page .table table .item td:nth-child(5) {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-
-    width: 50%;
-}
-
 .profile-page .table table .item a {
     display: flex;
     flex-direction: row;

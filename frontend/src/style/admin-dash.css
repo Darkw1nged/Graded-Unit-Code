@@ -154,7 +154,7 @@ main .stats .item .compare p {
     color: #00000080;
 }
 
-main .users {
+main .data {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -168,17 +168,47 @@ main .users {
     box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-main .users h1 {
+main .data h1 {
     font-size: 1.3rem;
     padding: 20px;
 }
 
-main .users table {
+main .data .title {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+main .data .title a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0 20px;
+
+    font-size: 1rem;
+    color: #000;
+    text-decoration: none;
+
+    border: 1px solid #ECEEF3;
+    border-radius: 5px;
+    padding: 5px 10px;
+
+    transition: .2s;
+}
+
+main .data .title a:hover {
+    background-color: #ECEEF3;
+}
+
+main .data table {
     width: 100%;
     border-collapse: collapse;
 }
 
-main .users table .heading {
+main .data table .heading {
     width: 100%;
     height: 50px;
 
@@ -192,11 +222,11 @@ main .users table .heading {
     border-bottom: 2px solid #525F7F;
 }
 
-main .users table th {
+main .data table th {
     padding-left: 20px;
 }
 
-main .users table .user {
+main .data table .user {
     width: 100%;
     height: 50px;
 
@@ -208,11 +238,11 @@ main .users table .user {
     border-bottom: 1px solid #ECEEF3;
 }
 
-main .users table td {
+main .data table td {
     padding: 10px 20px;
 }
 
-main .users table .user td:nth-child(5) {
+main .data table .user td:nth-child(5) {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -221,7 +251,7 @@ main .users table .user td:nth-child(5) {
     width: 50%;
 }
 
-main .users table .user a {
+main .data table .user a {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -238,11 +268,11 @@ main .users table .user a {
     transition: .2s;
 }
 
-main .users table .user a:hover {
+main .data table .user a:hover {
     background-color: #ECEEF3;
 }
 
-main .users table .user svg {
+main .data table .user svg {
     width: 20px;
     height: 20px;
 }

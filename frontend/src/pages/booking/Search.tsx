@@ -2,11 +2,12 @@ import { useState } from 'react';
 import '../../style/booking-search.css';
 
 const Page = () => {
+
+    const [space, setSpace] = useState<number>(0);
     const [formValues, setFormValues] = useState({
         departureTime: '',
         arrivalTime: ''
     });
-
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
         setFormValues({
@@ -18,70 +19,54 @@ const Page = () => {
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        fetch('http://localhost:5000/search-booking', {
+        fetch('http://localhost:5000/api/v1/bookings/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(formValues),
         })
-        .then(res => res.json())
-        .then(response => {
-            if (response.status === 200) {
-                if (response.availableSpaces === 0) {
-                    const error = document.querySelector('.error') as HTMLElement;
-                    error.classList.add('active');
-
-                    if (error.querySelector('p') != null) {
-                        const p = error.querySelector('p') as HTMLElement;
-                        p.innerHTML = response.message;
+        .then(res => {
+            if (res.status === 200) {
+                res.json().then(response => {
+                    if (response.bookings === undefined || response.bookings.length <= 150) {
+                        const success = document.querySelector('.success') as HTMLElement;
+                        success.classList.add('active');
+    
+                        document.querySelector('.error')?.classList.remove('active');
+                    } else {
+                        const error = document.querySelector('.error') as HTMLElement;
+                        error.classList.add('active');
+    
+                        if (error.querySelector('p') != null) {
+                            const p = error.querySelector('p') as HTMLElement;
+                            p.innerHTML = response.message;
+                        }
+    
+                        document.querySelector('.success')?.classList.remove('active');
                     }
 
-                    document.querySelector('.success')?.classList.remove('active');
-                } else {
-                    const success = document.querySelector('.success') as HTMLElement;
-                    success.classList.add('active');
-
-                    if (success.querySelector('a') !== null) {
-                    }
-
-                    document.querySelector('.error')?.classList.remove('active');
-                }
-            } else if (response.status === 400) {
+                    setSpace(response.space);
+                });
+            } else {
                 const error = document.querySelector('.error') as HTMLElement;
                 error.classList.add('active');
 
                 if (error.querySelector('p') !== null) {
                     const p = error.querySelector('p') as HTMLElement;
-                    p.innerHTML = response.message;
+                    p.innerHTML = 'There was an error with your request. Please try again later.';
                 }
 
                 document.querySelector('.success')?.classList.remove('active');
             }
-
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
         });
     }
-
     const handleBooking = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
         event.preventDefault();
-
-        fetch('http://localhost:5000/start-booking', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formValues),
-        })
-        .then(res => res.json())
-        .then(response => {
-            window.location.href = `/booking/create?token=${response.token}`;
-        })
-        .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error);
-        });
+        window.location.href = `/booking/create?space=${space}&departureTime=${formValues.departureTime}&arrivalTime=${formValues.arrivalTime}`;
     }
 
     return (

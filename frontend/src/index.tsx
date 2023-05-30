@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './style/index.css';
 import Navigation from './components/Navigation';
-import { AppProvider } from './components/context';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -10,8 +9,6 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <AppProvider>
-      <Navigation />
-    </AppProvider>
+    <Navigation />
   </React.StrictMode>
 );

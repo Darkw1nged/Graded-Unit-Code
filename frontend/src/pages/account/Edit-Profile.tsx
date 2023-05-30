@@ -1,220 +1,370 @@
-import { redirectIfNotLoggedIn } from "../../components/redirects";
+import { notSignedIn } from "../../components/redirects";
 import '../../style/edit-profile.css';
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import qs from 'qs';
 
-const changePage = () => {
-    const page = document.getElementById("page-1");
-    const page2 = document.getElementById("page-2");
-    const page3 = document.getElementById("page-3");
-
-    if (page == null || page2 == null || page3 == null) {
-        return;
-    }
-
-    const account = document.getElementById("page-account");
-    const vehicles = document.getElementById("page-vehicles");
-    const payments = document.getElementById("page-payments");
-
-    if (account == null || vehicles == null || payments == null) {
-        return;
-    }
-
-    account.addEventListener("click", () => {
-        page.classList.remove("hide")
-        page2.classList.add("hide")
-        page3.classList.add("hide")
-    });
-
-    vehicles.addEventListener("click", () => {
-        page.classList.add("hide")
-        page2.classList.remove("hide")
-        page3.classList.add("hide")
-    });
-
-    payments.addEventListener("click", () => {
-        page.classList.add("hide")
-        page2.classList.add("hide")
-        page3.classList.remove("hide")
-    });
+interface User {
+    email: string;
+    role: string;
+    telephone?: string;
+    addressLineOne?: string;
+    addressLineTwo?: string;
+    city?: string;
+    region?: string;
+    zip?: string;
+    country?: string;
+    suspended?: boolean;
 }
 
-interface Vehicle {
-    registration: string;
+interface Person {
+    UserID: number;
+    forename: string;
+    surname: string;
+    middle_name?: string;
+    family_name?: string;
+    date_of_birth?: Date;
+}
+
+interface Business {
+    UserID: number;
+    name: string;
+    slogan?: string;
+    description?: string;
+}
+
+interface vehicle {
+    registration_number: string;
+    user_id: number;
     make: string;
     model: string;
     colour: string;
 }
 
-interface Payment {
+interface card {
+    user_id: number;
     cardholder_name: string;
     card_number: string;
-    card_expiry: string;
+    expiry_date: string;
     cvv: string;
 }
 
 const Page = () => {
-    redirectIfNotLoggedIn();
+    notSignedIn();
 
-    const access_token = document.cookie.split("access_token=")[1]?.split(";")[0];
-    const [userProfile, setUserProfile] = useState({
+    const { search } = useLocation();
+    const { email } = qs.parse(search, { ignoreQueryPrefix: true });
+
+    const [userProfile, setUserProfile] = useState<User>({
         email: '',
-        name: '',
-        forename: '',
-        lastname: '',
+        role: '',
         telephone: '',
-        addressID: null,
-    })    
-    const [userAddress, setUserAddress] = useState({
         addressLineOne: '',
         addressLineTwo: '',
         city: '',
-        postcode: '',
-        country: ''
-    })
-    const [vehicle, setVehicle] = useState({
-        registration: '',
+        region: '',
+        zip: '',
+        country: '',
+        suspended: false
+    });
+    const [person, setPerson] = useState<Person>({
+        UserID: 0,
+        forename: '',
+        surname: '',
+        middle_name: '',
+        family_name: '',
+        date_of_birth: new Date()
+    });
+    const [business, setBusiness] = useState<Business>({
+        UserID: 0,
+        name: '',
+        slogan: '',
+        description: ''
+    });
+    const [userCards, setUserCards] = useState<card[]>([]);
+    const [card, setCard] = useState<card>({
+        user_id: 0,
+        cardholder_name: '',
+        card_number: '',
+        expiry_date: '',
+        cvv: ''
+    });
+    const [userVehicles, setUserVehicles] = useState<vehicle[]>([]);
+    const [vehicle, setVehicle] = useState<vehicle>({
+        registration_number: '',
+        user_id: 0,
         make: '',
         model: '',
         colour: ''
-    })
-    const [payment, setPayment] = useState({
-        cardholder_name: '',
-        card_number: '',
-        card_expiry: '',
-        cvv: ''
-    })
-
-    const [userPayments, setUserPayments] = useState<Payment[]>([]);
-    const [userVehicles, setUserVehicles] = useState<Vehicle[]>([]);
-    const isLoggedIn = document.cookie.includes('access_token');
-    const [formValues] = useState({
-        access_token: access_token,
-        email: '',
-        buissnessName: '',
-        forename: '',
-        lastname: '',
-        telephone: '',
-        addressLineOne: '',
-        addressLineTwo: '',
-        city: '',
-        postcode: '',
-        country: '',
-        Registration: '',
-        Make: '',
-        Model: '',
-        Colour: ''
     });
-    let isCorporateUser = useState(false);
 
     useEffect(() => {
-        const getUser = async () => {
-            fetch("http://localhost:5000/account/find", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formValues)
-            })
-            .then(async res =>{
-                if (res.status === 200) {
-                    const response = await res.json();
-                    await setUserProfile(response.user);
-                    await setUserAddress(response.address);
-                    await setUserVehicles(response.vehicles);
-                    await setUserPayments(response.payments);
-                    isCorporateUser = response.isCorporateUser;
-                } else {
-                    const response = await res.json();
-                    isCorporateUser = response.isCorporateUser;
-                    console.error(`Error retrieving user profile: ${response.error}`);
-                }
-            })
-            .catch(error => {
-                console.error("Failed to fetch profile: " + error);
-            });
-        }
+        fetch("http://localhost:5000/api/v1/users/find", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email })
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                res.json().then((response) => {
+                    setUserProfile(response.user);
+                    setPerson(response.person);
+                    setBusiness(response.business);
+                    setUserCards(response.cards);
+                    setUserVehicles(response.vehicles);
+                });
+            } else {
+                const response = await res.json();
+                console.error(`Error fetching user: ${response.error}`);
+            }
+        })
+        .catch(error => {
+            console.error("Failed to fetch user: " + error);
+        });
+    }, [email]);
 
-        getUser();
-    }, []);
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = event.target;
         setUserProfile(prevProfile => ({
             ...prevProfile,
             [name]: value,
         }));
-    }    
-    const handleAddressInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    }
+    const handlePersonInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setUserAddress(prevAddress => ({
-            ...prevAddress,
+        setPerson(prevPerson => ({
+            ...prevPerson,
+            [name]: value,
+        }));
+    }
+    const handleBusinessInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setBusiness(prevBusiness => ({
+            ...prevBusiness,
+            [name]: value,
+        }));
+    }
+    const handleCardsInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = event.target;
+        setCard(prevCards => ({
+            ...prevCards,
             [name]: value,
         }));
     }
     const handleVehicleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setVehicle(prevVehicle => ({
-            ...prevVehicle,
-            [name]: value,
-        }));
-    }
-    const handlePaymentInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setPayment(prevPayment => ({
-            ...prevPayment,
+        setVehicle(prevVehicles => ({
+            ...prevVehicles,
             [name]: value,
         }));
     }
 
-    const processForm = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const changePage = () => {
+        const page = document.getElementById("page-1");
+        const page2 = document.getElementById("page-2");
+        const page3 = document.getElementById("page-3");
 
-        fetch("http://localhost:5000/account/update", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                access_token: access_token,
-                userProfile: userProfile,
-                userAddress: userAddress
-            })
-        })
-        .then(async res =>{
-            if (res.status === 200) {
-                const response = await res.json();
-                console.log(response);
-            } else {
-                const response = await res.json();
-                console.error(`Error updating user profile: ${response.error}`);
-            }
-        })
-        .catch(error => {
-            console.error("Failed to update profile: " + error);
+        if (page == null || page2 == null || page3 == null) {
+            return;
+        }
+
+        const account = document.getElementById("page-account");
+        const vehicles = document.getElementById("page-vehicles");
+        const payments = document.getElementById("page-payments");
+
+        if (account == null || vehicles == null || payments == null) {
+            return;
+        }
+
+        account.addEventListener("click", () => {
+            page.classList.remove("hide")
+            page2.classList.add("hide")
+            page3.classList.add("hide")
+        });
+
+        vehicles.addEventListener("click", () => {
+            page.classList.add("hide")
+            page2.classList.remove("hide")
+            page3.classList.add("hide")
+        });
+
+        payments.addEventListener("click", () => {
+            page.classList.add("hide")
+            page2.classList.add("hide")
+            page3.classList.remove("hide")
         });
     }
 
-    const addVehicle = async (event: React.FormEvent<HTMLFormElement>) => {
+    const deleteVehicle = (vehicle: vehicle) => (event: React.MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
 
-        fetch("http://localhost:5000/account/add-vehicle", {
+        fetch("http://localhost:5000/api/v1/users/vehicles/delete", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                access_token: access_token,
-                vehicle: vehicle
-            })
+            body: JSON.stringify({ registration_number: vehicle.registration_number, email })
         })
-        .then(async res =>{
+        .then(async res => {
             if (res.status === 200) {
-                const response = await res.json();
-                console.log(response);
-                window.location.reload()
+                res.json().then((response) => {
+                    setUserVehicles(response.vehicles);
+
+                    const successMessage = document.querySelector('.success') as HTMLElement;
+                    successMessage.innerHTML = response.message;
+                    successMessage.classList.add('active');
+                    document.querySelector('.error')?.classList.remove('active');
+                });
             } else {
-                const response = await res.json();
-                console.error(`Error adding vehicle: ${response.error}`);
+                res.json().then(response => {
+                    const errorMessage = document.querySelector('.error') as HTMLElement;
+                    errorMessage.innerHTML = response.message;
+                    errorMessage.classList.add('active');
+                    document.querySelector('.success')?.classList.remove('active');
+                    console.error(`Error deleting vehicle: ${response.error}`);
+                })
+            }
+        })
+        .catch(error => {
+            console.error("Failed to delete vehicle: " + error);
+        });
+    }
+    const deleteCard = (card: card) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/api/v1/users/cards/delete", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ card, email })
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                res.json().then((response) => {
+                    setUserCards(response.cards);
+
+                    const successMessage = document.querySelector('.success') as HTMLElement;
+                    successMessage.innerHTML = response.message;
+                    successMessage.classList.add('active');
+                    document.querySelector('.error')?.classList.remove('active');
+                });
+            } else {
+                res.json().then(response => {
+                    const errorMessage = document.querySelector('.error') as HTMLElement;
+                    errorMessage.innerHTML = response.message;
+                    errorMessage.classList.add('active');
+                    document.querySelector('.success')?.classList.remove('active');
+                    console.error(`Error deleting card: ${response.error}`);
+                })
+            }
+        })
+        .catch(error => {
+            console.error("Failed to delete card: " + error);
+        });
+    }
+
+    const updateProfile = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/api/v1/users/update", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ user: userProfile, person, business })
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                res.json().then((response) => {
+                    setUserProfile(response.user);
+                    setPerson(response.person);
+                    setBusiness(response.business);
+
+                    const successMessage = document.querySelector('.success') as HTMLElement;
+                    successMessage.innerHTML = response.message;
+                    successMessage.classList.add('active');
+                    document.querySelector('.error')?.classList.remove('active');
+                });
+            } else {
+                res.json().then(response => {
+                    const errorMessage = document.querySelector('.error') as HTMLElement;
+                    errorMessage.innerHTML = response.message;
+                    errorMessage.classList.add('active');
+                    document.querySelector('.success')?.classList.remove('active');
+                    console.error(`Error updating user: ${response.error}`);
+                })
+            }
+        })
+        .catch(error => {
+            console.error("Failed to update user: " + error);
+        });
+    }
+    const addCard = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/api/v1/users/cards/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ card, email })
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                res.json().then((response) => {
+                    setUserCards(response.cards);
+
+                    const successMessage = document.querySelector('.success') as HTMLElement;
+                    successMessage.innerHTML = response.message;
+                    successMessage.classList.add('active');
+                    document.querySelector('.error')?.classList.remove('active');
+                });
+            } else {
+                res.json().then(response => {
+                    const errorMessage = document.querySelector('.error') as HTMLElement;
+                    errorMessage.innerHTML = response.message;
+                    errorMessage.classList.add('active');
+                    document.querySelector('.success')?.classList.remove('active');
+                    console.error(`Error adding card: ${response.error}`);
+                })
+            }
+        })
+        .catch(error => {
+            console.error("Failed to add card: " + error);
+        });
+    }
+    const addVehicle = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        fetch("http://localhost:5000/api/v1/users/vehicles/add", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ vehicle, email })
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                res.json().then((response) => {
+                    setUserVehicles(response.vehicles);
+
+                    const successMessage = document.querySelector('.success') as HTMLElement;
+                    successMessage.innerHTML = response.message;
+                    successMessage.classList.add('active');
+                    document.querySelector('.error')?.classList.remove('active');
+                });
+            } else {
+                res.json().then(response => {
+                    const errorMessage = document.querySelector('.error') as HTMLElement;
+                    errorMessage.innerHTML = response.message;
+                    errorMessage.classList.add('active');
+                    document.querySelector('.success')?.classList.remove('active');
+                    console.error(`Error adding vehicle: ${response.error}`);
+                })
             }
         })
         .catch(error => {
@@ -222,92 +372,13 @@ const Page = () => {
         });
     }
 
-    const addPayment = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
-        fetch("http://localhost:5000/account/add-payment", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                access_token: access_token,
-                payment: payment
-            })
-        })
-        .then(async res =>{
-            if (res.status === 200) {
-                const response = await res.json();
-                console.log(response);
-                window.location.reload()
-            } else {
-                const response = await res.json();
-                console.error(`Error adding payment: ${response.error}`);
-            }
-        })
-        .catch(error => {
-            console.error("Failed to add payment: " + error);
-        });
-    }
-
-    const deleteVehicle = (vehicle: Vehicle) => async (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-        event.preventDefault();
-
-        fetch("http://localhost:5000/account/delete-vehicle", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                access_token: access_token,
-                vehicle: vehicle
-            })
-        })
-        .then(async res =>{
-            if (res.status === 200) {
-                const response = await res.json();
-                console.log(response);
-                window.location.reload()
-            } else {
-                const response = await res.json();
-                console.error(`Error deleting vehicle: ${response.error}`);
-            }
-        })
-        .catch(error => {
-            console.error("Failed to delete vehicle: " + error);
-        });
-    }
-
-    const deletePayment = (payment: Payment) => async (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-        event.preventDefault();
-
-        fetch("http://localhost:5000/account/delete-payment", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                access_token: access_token,
-                payment: payment
-            })
-        })
-        .then(async res =>{
-            if (res.status === 200) {
-                const response = await res.json();
-                console.log(response);
-                window.location.reload()
-            } else {
-                const response = await res.json();
-                console.error(`Error deleting payment: ${response.error}`);
-            }
-        })
-        .catch(error => {
-            console.error("Failed to delete payment: " + error);
-        });
-    }
-
     return (
         <div className="edit-profile-page">
+            <div className="popup">
+                <div className="error"></div>
+                <div className="success"></div>
+            </div>
+
             <div className="container">
                 <div className="page-navigation">
                     <ul>
@@ -318,19 +389,27 @@ const Page = () => {
                         </li>
                     </ul>
                 </div>
+
                 <div className="page-content">
                     <div className="account-information" id="page-1">
 
                         <div className="form">
                             <h1>Account Settings</h1>
-                            <form onSubmit={processForm}>
+                            <form onSubmit={updateProfile}>
 
-                                { isCorporateUser ? (
-                                    <input type="text" name="businessName" value={userProfile.name || ''} onChange={handleInputChange} placeholder="Business Name" required/>
+                                { userProfile.role !== null && userProfile.role === 'buisness' ? (
+                                    <>
+                                        <input type="text" name="businessName" value={business.name || ''} onChange={handleBusinessInputChange} placeholder="Business Name" required/>
+
+                                        <div className="compact">
+                                            <input type="text" name="slogan" value={business.slogan || ''} onChange={handleBusinessInputChange} placeholder="Slogan (Optional)"/>
+                                            <input type="text" name="description" value={business.description || ''} onChange={handleBusinessInputChange} placeholder="Description (Optional)"/>
+                                        </div>
+                                    </>
                                 ) : (
                                     <div className="compact">
-                                        <input type="text" name="forename" value={userProfile.forename || ''} onChange={handleInputChange} placeholder="First Name"/>
-                                        <input type="text" name="lastname" value={userProfile.lastname || ''} onChange={handleInputChange} placeholder="Last Name"/>
+                                        <input type="text" name="forename" value={person.forename || ''} onChange={handlePersonInputChange} placeholder="First Name" required/>
+                                        <input type="text" name="surname" value={person.surname || ''} onChange={handlePersonInputChange} placeholder="Lasr Name" required />
                                     </div>
                                 )}
 
@@ -347,16 +426,17 @@ const Page = () => {
                                     <p>Address</p>
                                 </div>
 
-                                <input type="text" name="addressLineOne" value={userAddress?.addressLineOne ?? ''} onChange={handleAddressInputChange} placeholder="Address" />
+                                <input type="text" name="addressLineOne" value={userProfile.addressLineOne || ''} onChange={handleInputChange} placeholder="Address" />
 
                                 <div className="compact">
-                                    <input type="text" name="addressLineTwo" value={userAddress?.addressLineTwo ?? ''} onChange={handleAddressInputChange} placeholder="Address 2 (Optional)" />
-                                    <input type="text" name="postcode" value={userAddress?.postcode ?? ''} onChange={handleAddressInputChange} placeholder="Postal Code"/>
+                                    <input type="text" name="addressLineTwo" value={userProfile.addressLineTwo || ''} onChange={handleInputChange} placeholder="Address 2 (Optional)" />
+                                    <input type="text" name="zip" value={userProfile.zip || ''} onChange={handleInputChange} placeholder="Postal Code"/>
                                 </div>
 
                                 <div className="compact">
-                                    <input type="text" name="city" value={userAddress?.city ?? ''} onChange={handleAddressInputChange} placeholder="City"/>
-                                    <select name="country" value={userAddress?.country ?? ''} onChange={handleAddressInputChange} placeholder="Country" >
+                                    <input type="text" name="city" value={userProfile.city || ''} onChange={handleInputChange} placeholder="City"/>
+                                    <select name="country" value={userProfile.country || ''} onChange={handleInputChange} placeholder="Country" >
+                                        <option value="" hidden selected>Country</option>
                                         <option value="Afghanistan">Afghanistan</option>
                                         <option value="Albania">Albania</option>
                                         <option value="Algeria">Algeria</option>
@@ -557,8 +637,6 @@ const Page = () => {
 
                                 <input type="submit" value="Update" />
                             </form>
-
-                            <button>Convert to corporate</button>
                         </div>
 
                     </div>
@@ -570,7 +648,7 @@ const Page = () => {
 
                                 <form onSubmit={addVehicle}>
                                     <div className="compact">
-                                        <input type="text" name="registration" value={vehicle.registration} onChange={handleVehicleInputChange} placeholder="Registration" required/>
+                                        <input type="text" name="registration_number" value={vehicle.registration_number} onChange={handleVehicleInputChange} placeholder="Registration" required/>
                                         <input type="text" name="make" value={vehicle.make} onChange={handleVehicleInputChange} placeholder="Make" required/>
                                     </div>
 
@@ -598,8 +676,8 @@ const Page = () => {
                                 </thead>
                                 <tbody>
                                     { userVehicles !== undefined && userVehicles.length > 0 ? userVehicles.map(vehicle => (
-                                        <tr className="item">
-                                            <td>{vehicle.registration}</td>
+                                        <tr className="item" key={vehicle.registration_number}>
+                                            <td>{vehicle.registration_number}</td>
                                             <td>{vehicle.make}</td>
                                             <td>{vehicle.model}</td>
                                             <td>{vehicle.colour}</td>
@@ -629,14 +707,14 @@ const Page = () => {
                         <div className="form">
                             <h1>Payment Information</h1>
 
-                            <form onSubmit={addPayment}>
-                                <input type="text" name="cardholder_name" placeholder="Cardholder Name" value={payment.cardholder_name} onChange={handlePaymentInputChange} required />
-                                <input type="text" name="card_number" placeholder="Card Number" value={payment.card_number} onChange={handlePaymentInputChange} required />
+                            <form onSubmit={addCard}>
+                                <input type="text" name="cardholder_name" placeholder="Cardholder Name" value={card.cardholder_name} onChange={handleCardsInputChange} required />
+                                <input type="text" name="card_number" placeholder="Card Number" value={card.card_number} onChange={handleCardsInputChange} required />
 
                                 <div className="compact"> 
                                     {/* <input type="month" name="expiry"/> */}
-                                    <input type="text" name="card_expiry" placeholder="Expiry Date (MM/YY)" value={payment.card_expiry} onChange={handlePaymentInputChange} required />
-                                    <input type="text" name="cvv" placeholder="CVV/CVC" value={payment.cvv} onChange={handlePaymentInputChange} required />
+                                    <input type="text" name="expiry_date" placeholder="Expiry Date (MM/YY)" value={card.expiry_date} onChange={handleCardsInputChange} required />
+                                    <input type="text" name="cvv" placeholder="CVV/CVC" value={card.cvv} onChange={handleCardsInputChange} required />
                                 </div>
 
                                 <input type="submit" value="Add" />
@@ -658,14 +736,14 @@ const Page = () => {
                                 </thead>
 
                                 <tbody>
-                                    { userPayments !== undefined && userPayments.length > 0 ? userPayments.map(payment => (
-                                        <tr className="item">
-                                            <td>{payment.cardholder_name}</td>
-                                            <td>{payment.card_number}</td>
-                                            <td>{payment.card_expiry}</td>
-                                            <td>{payment.cvv}</td>
+                                    { userCards !== undefined && userCards.length > 0 ? userCards.map(card => (
+                                        <tr className="item" key={card.cvv}>
+                                            <td>{card.cardholder_name}</td>
+                                            <td>{card.card_number}</td>
+                                            <td>{card.expiry_date}</td>
+                                            <td>{card.cvv}</td>
                                             <td>
-                                                <a href="" onClick={deletePayment(payment)}>
+                                                <a href="" onClick={deleteCard(card)}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16"> 
                                                         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/> 
                                                         <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/> 

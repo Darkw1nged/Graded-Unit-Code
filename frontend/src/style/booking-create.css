@@ -61,7 +61,6 @@
     text-decoration: none;
 }
 
-
 .booking-create .container .pages .booking-person form input {
     width: 100%;
     height: 50px;
@@ -185,31 +184,22 @@
     color: #327aff;
     cursor: pointer;
 }
-
-.booking-create .container .pages .booking-extras form {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px
-}
-
-.booking-create .container .pages .booking-extras form input[type="checkbox"] {
+.booking-create .container .pages .booking-vehicle form input[type="checkbox"] {
     width: 20px;
     height: 20px;
     margin-right: 10px;
 }
 
-.booking-create .container .pages .booking-extras form input[type="checkbox"]:checked {
+.booking-create .container .pages .booking-vehicle form input[type="checkbox"]:checked {
     background-color: #327aff;
 }
 
-.booking-create .container .pages .booking-extras form label {
+.booking-create .container .pages .booking-vehicle form label {
     font-size: 1.2rem;
     color: rgba(0, 0, 0, 0.5);
 }
 
-.booking-create .container .pages .booking-extras form input[type="submit"] {
+.booking-create .container .pages .booking-vehicle form input[type="submit"] {
     width: 100%;
     height: 50px;
     border-radius: 5px;
@@ -222,12 +212,6 @@
     background-color: #327aff;
     color: #fff;
     transition: .3s;
-}
-
-.booking-create .container .pages .booking-extras form input[type="submit"]:hover {
-    background-color: transparent;
-    color: #327aff;
-    cursor: pointer;
 }
 
 .hide {

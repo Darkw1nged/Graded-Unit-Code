@@ -1,19 +1,24 @@
+import qs from 'qs';
+import { useLocation } from 'react-router-dom';
+import { notSignedIn, disabledRoute } from '../../components/redirects';
+
 const Page = () => {
+    notSignedIn();
+    disabledRoute();
+
+    const { search } = useLocation();
+    const { email } = qs.parse(search, { ignoreQueryPrefix: true });
 
     const handlePasswordSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const password = e.currentTarget.password.value;
-        const access_token = document.cookie.split('; ').find(row => row.startsWith('access_token'))?.split('=')[1];
 
-        fetch("http://localhost:5000/admin/protection", {
+        fetch("http://localhost:5000/api/v1/admin/dashboard/protection", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                password: password,
-                access_token: access_token,
-            }),
+            body: JSON.stringify({ password, email }),
         })
         .then(res => {
             if (res.status === 200) {
@@ -36,7 +41,7 @@ const Page = () => {
 
     return (
         <div>
-            
+
             <div className="popup">
                 <div className="error">
                     <p></p>

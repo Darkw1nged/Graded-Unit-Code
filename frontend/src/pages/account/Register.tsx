@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import redirectIfLoggedIn from '../../components/redirects';
+import { alreadySignedIn } from '../../components/redirects'
 
 const Page = () => {
-    redirectIfLoggedIn();
+    alreadySignedIn();
     
     return (
         <div className="form-body">
             <div className="navigation">
                 <Link to="/">Home</Link>
-                <Link to="/book-space">Book</Link>
+                <Link to="/booking/search">Book</Link>
                 <Link to="/contact">Contact</Link>
             </div>
 

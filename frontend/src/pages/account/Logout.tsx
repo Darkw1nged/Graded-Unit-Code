@@ -1,27 +1,25 @@
-const Page = () => {
+import { notSignedIn } from "../../components/redirects";
 
-    // check if the user is logged in
-    if (!document.cookie.includes("access_token")) {
-        // if the user is not logged in, redirect them to the login page
-        window.location.href = "/account/login";
-    }
+const Page = () => {
+    notSignedIn();
 
     // end the user session
-    fetch('http://localhost:5000/account/logout', {
+    fetch('http://localhost:5000/api/v1/users/logout', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            userToken: document.cookie.split("=")[1],
+            email: document.cookie.split("=")[2],
         })
     })
-    .then(response => response.json())
-    .then(response => {
-        // remove the user token from the cookie
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        // redirect the user to the login page
-        window.location.href = '/account/login';
+    .then(res => {
+        if (res.status === 200) {
+            res.json().then(response => {
+                document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.location.href = '/account/login';
+            });
+        }
     })
     .catch((error) => {
         console.error('There was a problem with the fetch operation:', error);

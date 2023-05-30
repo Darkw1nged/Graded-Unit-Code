@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import redirectIfLoggedIn from '../../components/redirects';
+import { alreadySignedIn } from '../../components/redirects'
 // import GoogleLogin from 'react-google-login';
 // import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props'
 
 const Page = () => {
-    redirectIfLoggedIn();
+    alreadySignedIn();
 
     const [formValues, setFormValues] = useState({
         email: '',
@@ -25,7 +25,7 @@ const Page = () => {
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        fetch('http://localhost:5000/account/login', {
+        fetch('http://localhost:5000/api/v1/users/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ const Page = () => {
                     errorPopup.classList.remove('active');
 
                     const expires = new Date(new Date() + response.expires);
-                    document.cookie = `access_token=${response.access_token}; expires=${expires}; path=/`;
+                    document.cookie = `access_token=${response.access_token}=${response.email}; expires=${expires}; path=/`;
                     window.location.href = '/';
                 });
             }
@@ -74,12 +74,8 @@ const Page = () => {
             </div>
 
             <div className="popup">
-                <div className="error">
-                    <p>s</p>
-                </div>
-                <div className="success">
-                    <p></p>
-                </div>
+                <div className="error"></div>
+                <div className="success"></div>
             </div>
 
             <div className="container">
